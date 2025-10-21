@@ -1,12 +1,11 @@
 import 'package:dio/dio.dart';
-import 'dart:convert';
 import '../utils/constants.dart';
 
 /// HTTP Service for direct communication with ESP32
 class HttpService {
   static HttpService? _instance;
   late Dio _dio;
-  
+
   HttpService._() {
     _dio = Dio(
       BaseOptions(
@@ -19,26 +18,28 @@ class HttpService {
         },
       ),
     );
-    
+
     // Add interceptors
-    _dio.interceptors.add(LogInterceptor(
-      requestBody: true,
-      responseBody: true,
-      error: true,
-    ));
+    _dio.interceptors.add(
+      LogInterceptor(
+        requestBody: true,
+        responseBody: true,
+        error: true,
+      ),
+    );
   }
-  
+
   /// Get singleton instance
   static HttpService get instance {
     _instance ??= HttpService._();
     return _instance!;
   }
-  
+
   /// Get Dio instance
   Dio get dio => _dio;
-  
+
   // ========== Generic HTTP Methods ==========
-  
+
   /// GET request
   Future<Map<String, dynamic>> get(
     String endpoint, {
@@ -54,7 +55,7 @@ class HttpService {
       throw _handleError(e);
     }
   }
-  
+
   /// POST request
   Future<Map<String, dynamic>> post(
     String endpoint, {
@@ -70,7 +71,7 @@ class HttpService {
       throw _handleError(e);
     }
   }
-  
+
   /// PUT request
   Future<Map<String, dynamic>> put(
     String endpoint, {
@@ -86,7 +87,7 @@ class HttpService {
       throw _handleError(e);
     }
   }
-  
+
   /// DELETE request
   Future<Map<String, dynamic>> delete(String endpoint) async {
     try {
@@ -96,9 +97,9 @@ class HttpService {
       throw _handleError(e);
     }
   }
-  
+
   // ========== Door Control Methods ==========
-  
+
   /// Open door
   Future<Map<String, dynamic>> openDoor({
     String? doorId,
@@ -113,7 +114,7 @@ class HttpService {
       },
     );
   }
-  
+
   /// Close door
   Future<Map<String, dynamic>> closeDoor({String? doorId}) async {
     return await post(
@@ -124,7 +125,7 @@ class HttpService {
       },
     );
   }
-  
+
   /// Get door status
   Future<Map<String, dynamic>> getDoorStatus({String? doorId}) async {
     return await get(
@@ -132,14 +133,14 @@ class HttpService {
       queryParameters: doorId != null ? {'door_id': doorId} : null,
     );
   }
-  
+
   // ========== Configuration Methods ==========
-  
+
   /// Get ESP32 configuration
   Future<Map<String, dynamic>> getConfig() async {
     return await get(AppConstants.endpointConfig);
   }
-  
+
   /// Update ESP32 configuration
   Future<Map<String, dynamic>> updateConfig(
     Map<String, dynamic> config,
@@ -149,17 +150,17 @@ class HttpService {
       data: config,
     );
   }
-  
+
   /// Set device base URL (for switching between devices)
   void setBaseUrl(String baseUrl) {
     _dio.options.baseUrl = baseUrl;
   }
-  
+
   /// Get current base URL
   String get baseUrl => _dio.options.baseUrl;
-  
+
   // ========== Custom Endpoints ==========
-  
+
   /// Generic custom request
   Future<Map<String, dynamic>> customRequest({
     required String method,
@@ -179,31 +180,31 @@ class HttpService {
       throw _handleError(e);
     }
   }
-  
+
   // ========== Error Handling ==========
-  
+
   Exception _handleError(DioException e) {
     String message;
-    
+
     switch (e.type) {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
         message = AppConstants.errorTimeout;
         break;
-      
+
       case DioExceptionType.badResponse:
         message = 'Server error: ${e.response?.statusCode}';
         break;
-      
+
       case DioExceptionType.cancel:
         message = 'Request cancelled';
         break;
-      
+
       default:
         message = AppConstants.errorNetworkConnection;
     }
-    
+
     return Exception(message);
   }
 }

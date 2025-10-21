@@ -12,14 +12,14 @@ class HeaderBar extends StatelessWidget {
   final bool isDarkMode;
   
   const HeaderBar({
-    Key? key,
+    super.key,
     this.user,
     this.onProfileTap,
     this.onLanguageChange,
     this.onThemeToggle,
     this.currentLanguage = 'EN',
     this.isDarkMode = true,
-  }) : super(key: key);
+  });
   
   @override
   Widget build(BuildContext context) {

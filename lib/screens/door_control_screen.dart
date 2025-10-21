@@ -1,67 +1,168 @@
 import 'package:flutter/material.dart';
-import '../theme/theme_config.dart';
-import '../widgets/header_bar.dart';
-import '../widgets/quantum_background.dart';
-import '../widgets/dashboard_card.dart';
-import '../models/door_model.dart';
-import '../models/user_model.dart';
-import '../services/auth_service.dart';
-import '../services/http_service.dart';
-import '../utils/helpers.dart';
 
-class DoorControlScreen extends StatefulWidget {
-  const DoorControlScreen({Key? key}) : super(key: key);
-  
-  @override
-  State<DoorControlScreen> createState() => _DoorControlScreenState();
-}
+/// Door Control Screen
+class DoorControlScreen extends StatelessWidget {
+  const DoorControlScreen({super.key});
 
-class _DoorControlScreenState extends State<DoorControlScreen> {
-  final _authService = AuthService();
-  final _httpService = HttpService.instance;
-  UserModel? _currentUser;
-  List<DoorModel> _doors = [];
-  bool _isLoading = true;
-  
-  @override
-  void initState() {
-    super.initState();
-    _loadData();
-  }
-  
-  Future<void> _loadData() async {
-    final user = await _authService.getCurrentUserData();
-    setState(() {
-      _currentUser = user;
-      _doors = [
-        DoorModel(
-          id: '1',
-          name: 'Main Entrance',
-          threshold: 1.5,
-          relayPin: 4,
-          status: 'closed',
-          location: 'Building A',
-          createdAt: DateTime.now(),
-        ),
-      ];
-      _isLoading = false;
-    });
-  }
-  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: QuantumBackground(
-        child: Column(
+      backgroundColor: const Color(0xFF0B0C10),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF1F2937),
+        title: const Text('Door Control'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.all(16),
           children: [
-            HeaderBar(user: _currentUser),
-            Expanded(
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : const Center(child: Text('Door Control - Coming Soon')),
+            _buildDoorCard(
+              context,
+              'Main Entrance',
+              'Building A',
+              true,
+            ),
+            const SizedBox(height: 16),
+            _buildDoorCard(
+              context,
+              'Warehouse Door 1',
+              'Building B',
+              false,
+            ),
+            const SizedBox(height: 16),
+            _buildDoorCard(
+              context,
+              'Warehouse Door 2',
+              'Building B',
+              false,
+            ),
+            const SizedBox(height: 16),
+            _buildDoorCard(
+              context,
+              'Office Entrance',
+              'Building C',
+              true,
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildDoorCard(
+    BuildContext context,
+    String name,
+    String location,
+    bool isLocked,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1F2937),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: (isLocked ? Colors.redAccent : const Color(0xFF00FFC6))
+              .withOpacity(0.5),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.door_front_door,
+                color: isLocked ? Colors.redAccent : const Color(0xFF00FFC6),
+                size: 32,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Text(
+                      location,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: (isLocked ? Colors.redAccent : const Color(0xFF00FFC6))
+                      .withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  isLocked ? 'LOCKED' : 'UNLOCKED',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color:
+                        isLocked ? Colors.redAccent : const Color(0xFF00FFC6),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Opening $name...')),
+                    );
+                  },
+                  icon: const Icon(Icons.lock_open),
+                  label: const Text('Open'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF00FFC6),
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Closing $name...')),
+                    );
+                  },
+                  icon: const Icon(Icons.lock),
+                  label: const Text('Close'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

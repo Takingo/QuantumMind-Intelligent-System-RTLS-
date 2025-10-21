@@ -6,21 +6,35 @@ import '../models/user_model.dart';
 /// Authentication Service
 class AuthService {
   final SupabaseService _supabaseService = SupabaseService.instance;
-  
-  /// Get current session
-  Session? get currentSession => _supabaseService.client.auth.currentSession;
-  
-  /// Get current user
-  User? get currentUser => _supabaseService.client.auth.currentUser;
-  
+
+  /// Get current session (Demo mode: always null)
+  Session? get currentSession {
+    try {
+      return _supabaseService.client.auth.currentSession;
+    } catch (e) {
+      // Supabase not initialized - demo mode
+      return null;
+    }
+  }
+
+  /// Get current user (Demo mode: always null)
+  User? get currentUser {
+    try {
+      return _supabaseService.client.auth.currentUser;
+    } catch (e) {
+      // Supabase not initialized - demo mode
+      return null;
+    }
+  }
+
   /// Check if user is logged in
   bool get isLoggedIn => currentSession != null;
-  
+
   /// Get user ID
   String? get userId => currentUser?.id;
-  
+
   // ========== Authentication Methods ==========
-  
+
   /// Sign up with email and password
   Future<UserModel> signUp({
     required String email,
@@ -38,11 +52,11 @@ class AuthService {
           'role': role,
         },
       );
-      
+
       if (authResponse.user == null) {
         throw Exception('Failed to create user');
       }
-      
+
       // Create user record in database
       final userData = {
         'id': authResponse.user!.id,
@@ -52,53 +66,69 @@ class AuthService {
         'created_at': DateTime.now().toIso8601String(),
         'is_active': true,
       };
-      
+
       await _supabaseService.insert(AppConstants.tableUsers, userData);
-      
+
       return UserModel.fromJson(userData);
     } catch (e) {
       throw Exception('Sign up failed: $e');
     }
   }
-  
+
   /// Sign in with email and password
   Future<UserModel> signIn({
     required String email,
     required String password,
   }) async {
+    // ========== DEMO MODE: Test Credentials ==========
+    // Email: test@1.com | Password: 123456
+    if (email == 'test@1.com' && password == '123456') {
+      // Return demo user without Supabase authentication
+      return UserModel(
+        id: 'demo-user-id-12345',
+        name: 'Demo User',
+        email: 'test@1.com',
+        role: AppConstants.roleAdmin,
+        isActive: true,
+        createdAt: DateTime.now(),
+      );
+    }
+    // ================================================
+
     try {
-      final authResponse = await _supabaseService.client.auth.signInWithPassword(
+      final authResponse =
+          await _supabaseService.client.auth.signInWithPassword(
         email: email,
         password: password,
       );
-      
+
       if (authResponse.user == null) {
         throw Exception('Login failed');
       }
-      
+
       // Update last login time
       await _supabaseService.update(
         AppConstants.tableUsers,
         authResponse.user!.id,
         {'last_login_at': DateTime.now().toIso8601String()},
       );
-      
+
       // Fetch user data
       final userData = await _supabaseService.getById(
         AppConstants.tableUsers,
         authResponse.user!.id,
       );
-      
+
       if (userData == null) {
         throw Exception('User data not found');
       }
-      
+
       return UserModel.fromJson(userData);
     } catch (e) {
       throw Exception('Login failed: $e');
     }
   }
-  
+
   /// Sign out
   Future<void> signOut() async {
     try {
@@ -107,7 +137,7 @@ class AuthService {
       throw Exception('Sign out failed: $e');
     }
   }
-  
+
   /// Reset password
   Future<void> resetPassword(String email) async {
     try {
@@ -116,7 +146,7 @@ class AuthService {
       throw Exception('Password reset failed: $e');
     }
   }
-  
+
   /// Update password
   Future<void> updatePassword(String newPassword) async {
     try {
@@ -127,25 +157,25 @@ class AuthService {
       throw Exception('Password update failed: $e');
     }
   }
-  
+
   /// Get current user data
   Future<UserModel?> getCurrentUserData() async {
     try {
       if (!isLoggedIn || userId == null) return null;
-      
+
       final userData = await _supabaseService.getById(
         AppConstants.tableUsers,
         userId!,
       );
-      
+
       if (userData == null) return null;
-      
+
       return UserModel.fromJson(userData);
     } catch (e) {
       throw Exception('Failed to fetch user data: $e');
     }
   }
-  
+
   /// Update user profile
   Future<UserModel> updateProfile({
     String? name,
@@ -155,23 +185,23 @@ class AuthService {
       if (!isLoggedIn || userId == null) {
         throw Exception('User not logged in');
       }
-      
+
       final updates = <String, dynamic>{};
       if (name != null) updates['name'] = name;
       if (avatarUrl != null) updates['avatar_url'] = avatarUrl;
-      
+
       final updatedData = await _supabaseService.update(
         AppConstants.tableUsers,
         userId!,
         updates,
       );
-      
+
       return UserModel.fromJson(updatedData);
     } catch (e) {
       throw Exception('Profile update failed: $e');
     }
   }
-  
+
   /// Check user role
   Future<bool> hasRole(String role) async {
     try {
@@ -181,12 +211,12 @@ class AuthService {
       return false;
     }
   }
-  
+
   /// Check if user is admin
   Future<bool> isAdmin() async {
     return await hasRole(AppConstants.roleAdmin);
   }
-  
+
   /// Listen to auth state changes
   Stream<AuthState> get onAuthStateChange {
     return _supabaseService.client.auth.onAuthStateChange;

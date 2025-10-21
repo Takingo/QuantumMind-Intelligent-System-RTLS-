@@ -4,7 +4,7 @@ import 'dart:math' as math;
 /// Custom animation utilities for quantum effects
 class QuantumAnimations {
   // ========== Fade Animations ==========
-  
+
   /// Fade in animation
   static Widget fadeIn({
     required Widget child,
@@ -21,7 +21,7 @@ class QuantumAnimations {
       child: child,
     );
   }
-  
+
   /// Fade in from bottom
   static Widget fadeInUp({
     required Widget child,
@@ -42,9 +42,9 @@ class QuantumAnimations {
       child: child,
     );
   }
-  
+
   // ========== Glow Animations ==========
-  
+
   /// Pulsing glow effect
   static Widget pulseGlow({
     required Widget child,
@@ -76,41 +76,49 @@ class QuantumAnimations {
       },
     );
   }
-  
+
   // ========== Particle Effects ==========
-  
+
   /// Floating particles background
   static Widget particleBackground({
     int particleCount = 50,
     Color particleColor = const Color(0xFF007AFF),
   }) {
-    return CustomPaint(
-      painter: ParticlePainter(
-        particleCount: particleCount,
-        particleColor: particleColor,
-      ),
-      size: Size.infinite,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return CustomPaint(
+          painter: ParticlePainter(
+            particleCount: particleCount,
+            particleColor: particleColor,
+          ),
+          child: Container(),
+        );
+      },
     );
   }
-  
+
   // ========== Energy Lines ==========
-  
+
   /// Animated energy lines
   static Widget energyLines({
     Color color = const Color(0xFF00FFC6),
     int lineCount = 5,
   }) {
-    return CustomPaint(
-      painter: EnergyLinePainter(
-        color: color,
-        lineCount: lineCount,
-      ),
-      size: Size.infinite,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return CustomPaint(
+          painter: EnergyLinePainter(
+            color: color,
+            lineCount: lineCount,
+          ),
+          child: Container(),
+        );
+      },
     );
   }
-  
+
   // ========== Scale Animations ==========
-  
+
   /// Scale on hover/tap
   static Widget scaleOnTap({
     required Widget child,
@@ -147,28 +155,30 @@ class ParticlePainter extends CustomPainter {
   final int particleCount;
   final Color particleColor;
   final List<Particle> particles = [];
-  
+
   ParticlePainter({
     required this.particleCount,
     required this.particleColor,
   }) {
     // Initialize particles
     for (int i = 0; i < particleCount; i++) {
-      particles.add(Particle(
-        x: math.Random().nextDouble(),
-        y: math.Random().nextDouble(),
-        size: math.Random().nextDouble() * 3 + 1,
-        speed: math.Random().nextDouble() * 0.5 + 0.1,
-      ));
+      particles.add(
+        Particle(
+          x: math.Random().nextDouble(),
+          y: math.Random().nextDouble(),
+          size: math.Random().nextDouble() * 3 + 1,
+          speed: math.Random().nextDouble() * 0.5 + 0.1,
+        ),
+      );
     }
   }
-  
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..color = particleColor.withOpacity(0.3)
       ..style = PaintingStyle.fill;
-    
+
     for (final particle in particles) {
       canvas.drawCircle(
         Offset(particle.x * size.width, particle.y * size.height),
@@ -177,7 +187,7 @@ class ParticlePainter extends CustomPainter {
       );
     }
   }
-  
+
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
@@ -187,7 +197,7 @@ class Particle {
   double y;
   double size;
   double speed;
-  
+
   Particle({
     required this.x,
     required this.y,
@@ -200,34 +210,34 @@ class Particle {
 class EnergyLinePainter extends CustomPainter {
   final Color color;
   final int lineCount;
-  
+
   EnergyLinePainter({
     required this.color,
     required this.lineCount,
   });
-  
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..color = color.withOpacity(0.2)
       ..strokeWidth = 2
       ..style = PaintingStyle.stroke;
-    
+
     for (int i = 0; i < lineCount; i++) {
       final path = Path();
       final y = (size.height / (lineCount + 1)) * (i + 1);
-      
+
       path.moveTo(0, y);
-      
+
       for (double x = 0; x < size.width; x += 20) {
         final wave = math.sin((x / size.width) * 2 * math.pi + i) * 10;
         path.lineTo(x, y + wave);
       }
-      
+
       canvas.drawPath(path, paint);
     }
   }
-  
+
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
@@ -236,13 +246,13 @@ class EnergyLinePainter extends CustomPainter {
 class ShimmerLoading extends StatefulWidget {
   final Widget child;
   final Duration duration;
-  
+
   const ShimmerLoading({
-    Key? key,
+    super.key,
     required this.child,
     this.duration = const Duration(milliseconds: 1500),
-  }) : super(key: key);
-  
+  });
+
   @override
   State<ShimmerLoading> createState() => _ShimmerLoadingState();
 }
@@ -250,7 +260,7 @@ class ShimmerLoading extends StatefulWidget {
 class _ShimmerLoadingState extends State<ShimmerLoading>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  
+
   @override
   void initState() {
     super.initState();
@@ -259,13 +269,13 @@ class _ShimmerLoadingState extends State<ShimmerLoading>
       duration: widget.duration,
     )..repeat();
   }
-  
+
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(

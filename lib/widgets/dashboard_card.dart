@@ -12,7 +12,7 @@ class DashboardCard extends StatelessWidget {
   final bool showGlow;
   
   const DashboardCard({
-    Key? key,
+    super.key,
     required this.title,
     required this.child,
     this.width,
@@ -20,7 +20,7 @@ class DashboardCard extends StatelessWidget {
     this.padding,
     this.onTap,
     this.showGlow = false,
-  }) : super(key: key);
+  });
   
   @override
   Widget build(BuildContext context) {
