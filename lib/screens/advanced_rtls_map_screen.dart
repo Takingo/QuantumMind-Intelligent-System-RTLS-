@@ -42,6 +42,8 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
   final List<MapWall> _walls = [];
   final List<MapDoor> _doors = [];
   final List<MapAnchor> _anchors = [];
+  final List<MapDistanceLine> _distanceLines =
+      []; // Zone-to-zone distance measurements
 
   Uint8List? _floorPlanBytes;
   bool _isEditMode = false;
@@ -51,6 +53,12 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
   bool _isPlacingElement = false;
   String _pendingElementType = '';
   bool _isDisposed = false;
+  MapZone? _distanceLineStartZone; // For measuring zone-to-zone distance
+
+  // Measurement system
+  double _mapScale = 0.025; // 1px = 0.025m (2.5cm)
+  String _measurementUnit = 'meter'; // meter, cm, feet
+  bool _showMeasurements = true;
 
   @override
   void dispose() {
@@ -58,6 +66,7 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
     _floorPlanBytes = null;
     _selectedElement = null;
     _wallStartPoint = null;
+    _distanceLineStartZone = null;
     super.dispose();
   }
 
@@ -70,6 +79,10 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
         title: const Text('Advanced RTLS Map'),
         actions: [
           IconButton(
+              icon: const Icon(Icons.straighten),
+              tooltip: 'Map Config',
+              onPressed: _showMapConfig),
+          IconButton(
               icon: const Icon(Icons.upload_file), onPressed: _importFloorPlan),
           IconButton(
               icon: const Icon(Icons.picture_as_pdf), onPressed: _exportToPdf),
@@ -81,93 +94,121 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
                 _selectedElement = null;
                 _drawingMode = DrawingMode.none;
                 _wallStartPoint = null;
+                _distanceLineStartZone = null;
               }
             }),
           ),
         ],
       ),
-      body: Column(
-        children: [
-          if (_isEditMode) _buildDrawingTools(),
-          Expanded(
-            child: Row(
-              children: [
-                // Side panel for edit buttons (only in edit mode)
-                if (_isEditMode) _buildEditSidePanel(),
-                // Main map area
-                Expanded(
-                  child: Container(
-                    margin: const EdgeInsets.only(
-                        top: 4, right: 4, bottom: 4), // Reduced margins
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1F2937),
-                      borderRadius: BorderRadius.circular(12), // Smaller radius
-                      border: Border.all(
-                          color: const Color(0xFF007AFF).withOpacity(0.3)),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          return GestureDetector(
-                            onTapDown: (details) {
-                              if (!_isEditMode || _isDisposed) return;
+      body: OrientationBuilder(
+        builder: (context, orientation) {
+          final isLandscape = orientation == Orientation.landscape;
 
-                              if (_drawingMode == DrawingMode.wall) {
-                                _handleWallDrawing(details.localPosition);
-                              } else if (_isPlacingElement) {
-                                _placeElementAtPosition(details.localPosition);
-                              }
+          final bodyContent = Column(
+            children: [
+              if (_isEditMode) _buildDrawingTools(),
+              Expanded(
+                child: Row(
+                  children: [
+                    // Side panel for edit buttons (only in edit mode)
+                    if (_isEditMode) _buildEditSidePanel(),
+                    // Main map area
+                    Expanded(
+                      child: Container(
+                        margin: const EdgeInsets.only(
+                            top: 4, right: 4, bottom: 4), // Reduced margins
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1F2937),
+                          borderRadius:
+                              BorderRadius.circular(12), // Smaller radius
+                          border: Border.all(
+                              color: const Color(0xFF007AFF).withOpacity(0.3)),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: LayoutBuilder(
+                            builder: (context, constraints) {
+                              return GestureDetector(
+                                onTapDown: (details) {
+                                  if (!_isEditMode || _isDisposed) return;
+
+                                  if (_drawingMode == DrawingMode.wall) {
+                                    _handleWallDrawing(details.localPosition);
+                                  } else if (_isPlacingElement) {
+                                    _placeElementAtPosition(
+                                        details.localPosition);
+                                  }
+                                },
+                                child: Stack(
+                                  children: [
+                                    if (_floorPlanBytes != null)
+                                      Positioned.fill(
+                                          child: Image.memory(_floorPlanBytes!,
+                                              fit: BoxFit.contain))
+                                    else
+                                      Positioned.fill(
+                                          child: CustomPaint(
+                                              painter: GridPainter())),
+                                    ..._zones
+                                        .map((zone) => _buildZone(zone))
+                                        .toList(),
+                                    ..._walls
+                                        .map((wall) => _buildWall(wall))
+                                        .toList(),
+                                    ..._doors
+                                        .map((door) => _buildDoor(door))
+                                        .toList(),
+                                    ..._anchors
+                                        .map((anchor) => _buildAnchor(anchor))
+                                        .toList(),
+                                    ..._distanceLines
+                                        .map((line) => _buildDistanceLine(line))
+                                        .toList(),
+                                    ..._tags
+                                        .map((tag) => _buildTag(tag))
+                                        .toList(),
+                                    Positioned(
+                                        top: 16,
+                                        right: 16,
+                                        child: _buildLegend()),
+                                    if (_wallStartPoint != null)
+                                      Positioned(
+                                        left: _wallStartPoint!.dx - 5,
+                                        top: _wallStartPoint!.dy - 5,
+                                        child: Container(
+                                            width: 10,
+                                            height: 10,
+                                            decoration: const BoxDecoration(
+                                                color: Colors.red,
+                                                shape: BoxShape.circle)),
+                                      ),
+                                  ],
+                                ),
+                              );
                             },
-                            child: Stack(
-                              children: [
-                                if (_floorPlanBytes != null)
-                                  Positioned.fill(
-                                      child: Image.memory(_floorPlanBytes!,
-                                          fit: BoxFit.contain))
-                                else
-                                  Positioned.fill(
-                                      child:
-                                          CustomPaint(painter: GridPainter())),
-                                ..._zones
-                                    .map((zone) => _buildZone(zone))
-                                    .toList(),
-                                ..._walls
-                                    .map((wall) => _buildWall(wall))
-                                    .toList(),
-                                ..._doors
-                                    .map((door) => _buildDoor(door))
-                                    .toList(),
-                                ..._anchors
-                                    .map((anchor) => _buildAnchor(anchor))
-                                    .toList(),
-                                ..._tags.map((tag) => _buildTag(tag)).toList(),
-                                Positioned(
-                                    top: 16, right: 16, child: _buildLegend()),
-                                if (_wallStartPoint != null)
-                                  Positioned(
-                                    left: _wallStartPoint!.dx - 5,
-                                    top: _wallStartPoint!.dy - 5,
-                                    child: Container(
-                                        width: 10,
-                                        height: 10,
-                                        decoration: const BoxDecoration(
-                                            color: Colors.red,
-                                            shape: BoxShape.circle)),
-                                  ),
-                              ],
-                            ),
-                          );
-                        },
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-          _buildElementList(),
-        ],
+              ),
+              _buildElementList(),
+            ],
+          );
+
+          // Wrap in scroll view for landscape mode
+          return isLandscape
+              ? SingleChildScrollView(
+                  child: SizedBox(
+                    height: MediaQuery.of(context)
+                        .size
+                        .width, // Use width as height in landscape
+                    child: bodyContent,
+                  ),
+                )
+              : bodyContent;
+        },
       ),
     );
   }
@@ -197,6 +238,8 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
                       Colors.brown),
                   _buildToolButton(
                       'Anchor', Icons.router, DrawingMode.anchor, Colors.red),
+                  _buildToolButton('Distance', Icons.straighten,
+                      DrawingMode.distance, Colors.yellow),
                 ],
               ),
             ),
@@ -219,6 +262,7 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
         onPressed: () => setState(() {
           _drawingMode = mode;
           if (mode != DrawingMode.wall) _wallStartPoint = null;
+          if (mode != DrawingMode.distance) _distanceLineStartZone = null;
         }),
         icon: Icon(icon, size: 18),
         label: Text(label),
@@ -236,10 +280,17 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
       left: zone.x,
       top: zone.y,
       child: GestureDetector(
-        onTap:
-            _isEditMode ? () => setState(() => _selectedElement = zone) : null,
+        onTap: _isEditMode
+            ? () {
+                if (_drawingMode == DrawingMode.distance) {
+                  _handleDistanceLineMeasurement(zone);
+                } else {
+                  setState(() => _selectedElement = zone);
+                }
+              }
+            : null,
         onDoubleTap: _isEditMode ? () => _editZone(zone) : null,
-        onPanUpdate: _isEditMode
+        onPanUpdate: _isEditMode && _drawingMode != DrawingMode.distance
             ? (details) => setState(() {
                   zone.x += details.delta.dx;
                   zone.y += details.delta.dy;
@@ -255,12 +306,110 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
                 width: isSelected ? 3 : 2),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Center(
-              child: Text(zone.name,
+          child: Stack(
+            children: [
+              // Zone name in center
+              Center(
+                child: Text(
+                  zone.name,
                   style: TextStyle(
-                      color: zone.color,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12))),
+                    color: zone.color,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+              // Measurement badges - CLICKABLE TO EDIT!
+              if (_showMeasurements)
+                // Width badge (top) - EDITABLE
+                Positioned(
+                  top: 2,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: GestureDetector(
+                      onTap: _isEditMode
+                          ? () => _quickEditZoneDimension(zone, 'width')
+                          : null,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: _isEditMode
+                              ? Colors.blue.withOpacity(0.8)
+                              : Colors.black.withOpacity(0.6),
+                          borderRadius: BorderRadius.circular(4),
+                          border: _isEditMode
+                              ? Border.all(color: Colors.white, width: 1)
+                              : null,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (_isEditMode)
+                              const Icon(Icons.edit,
+                                  size: 10, color: Colors.white),
+                            if (_isEditMode) const SizedBox(width: 2),
+                            Text(
+                              _toRealSize(zone.width),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              if (_showMeasurements)
+                // Height badge (left side) - EDITABLE
+                Positioned(
+                  left: 2,
+                  top: 0,
+                  bottom: 0,
+                  child: Center(
+                    child: GestureDetector(
+                      onTap: _isEditMode
+                          ? () => _quickEditZoneDimension(zone, 'height')
+                          : null,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: _isEditMode
+                              ? Colors.blue.withOpacity(0.8)
+                              : Colors.black.withOpacity(0.6),
+                          borderRadius: BorderRadius.circular(4),
+                          border: _isEditMode
+                              ? Border.all(color: Colors.white, width: 1)
+                              : null,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (_isEditMode)
+                              const Icon(Icons.edit,
+                                  size: 10, color: Colors.white),
+                            if (_isEditMode) const SizedBox(width: 2),
+                            Text(
+                              _toRealSize(zone.height),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -268,20 +417,68 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
 
   Widget _buildWall(MapWall wall) {
     final isSelected = _selectedElement == wall;
-    return Positioned(
-      left: wall.x1 < wall.x2 ? wall.x1 : wall.x2,
-      top: wall.y1 < wall.y2 ? wall.y1 : wall.y2,
-      child: GestureDetector(
-        onTap:
-            _isEditMode ? () => setState(() => _selectedElement = wall) : null,
-        onDoubleTap:
-            _isEditMode ? () => _showWallInfo(wall) : null, // Added double-tap
-        child: SizedBox(
-          width: (wall.x2 - wall.x1).abs() + 10,
-          height: (wall.y2 - wall.y1).abs() + 10,
-          child: CustomPaint(painter: WallPainter(wall, isSelected)),
+    return Stack(
+      children: [
+        // Wall line
+        Positioned(
+          left: wall.x1 < wall.x2 ? wall.x1 : wall.x2,
+          top: wall.y1 < wall.y2 ? wall.y1 : wall.y2,
+          child: GestureDetector(
+            onTap: _isEditMode
+                ? () => setState(() => _selectedElement = wall)
+                : null,
+            onDoubleTap:
+                _isEditMode ? () => _editWall(wall) : null, // Changed to edit
+            child: SizedBox(
+              width: (wall.x2 - wall.x1).abs() + 10,
+              height: (wall.y2 - wall.y1).abs() + 10,
+              child: CustomPaint(painter: WallPainter(wall, isSelected)),
+            ),
+          ),
         ),
-      ),
+        // Draggable start point
+        if (_isEditMode && isSelected)
+          Positioned(
+            left: wall.x1 - 8,
+            top: wall.y1 - 8,
+            child: GestureDetector(
+              onPanUpdate: (details) => setState(() {
+                wall.x1 += details.delta.dx;
+                wall.y1 += details.delta.dy;
+              }),
+              child: Container(
+                width: 16,
+                height: 16,
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 2),
+                ),
+              ),
+            ),
+          ),
+        // Draggable end point
+        if (_isEditMode && isSelected)
+          Positioned(
+            left: wall.x2 - 8,
+            top: wall.y2 - 8,
+            child: GestureDetector(
+              onPanUpdate: (details) => setState(() {
+                wall.x2 += details.delta.dx;
+                wall.y2 += details.delta.dy;
+              }),
+              child: Container(
+                width: 16,
+                height: 16,
+                decoration: BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 2),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -479,6 +676,8 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
                     'Walls', _walls.length, Icons.horizontal_rule),
                 _buildElementChip('Doors', _doors.length, Icons.sensor_door),
                 _buildElementChip('Anchors', _anchors.length, Icons.router),
+                _buildElementChip(
+                    'Distances', _distanceLines.length, Icons.straighten),
               ],
             ),
           ),
@@ -848,11 +1047,199 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
       context: context,
       builder: (context) => _EditZoneDialog(
         zone: zone,
+        mapScale: _mapScale,
+        measurementUnit: _measurementUnit,
         onEdit: () {
           if (mounted) setState(() {});
         },
       ),
     );
+  }
+
+  void _quickEditZoneDimension(MapZone zone, String dimension) {
+    if (!mounted) return;
+
+    final isWidth = dimension == 'width';
+    final currentValue = isWidth ? zone.width : zone.height;
+    final currentRealValue = currentValue * _mapScale;
+
+    String displayValue;
+    switch (_measurementUnit) {
+      case 'meter':
+        displayValue = currentRealValue.toStringAsFixed(2);
+        break;
+      case 'cm':
+        displayValue = (currentRealValue * 100).toStringAsFixed(0);
+        break;
+      case 'feet':
+        displayValue = (currentRealValue * 3.28084).toStringAsFixed(2);
+        break;
+      default:
+        displayValue = currentRealValue.toStringAsFixed(2);
+    }
+
+    final controller = TextEditingController(text: displayValue);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1F2937),
+        title: Row(
+          children: [
+            Icon(
+              isWidth ? Icons.swap_horiz : Icons.swap_vert,
+              color: Colors.blue,
+              size: 20,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Edit ${isWidth ? "Width" : "Height"}',
+              style: const TextStyle(color: Colors.white, fontSize: 16),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Zone: ${zone.name}',
+              style: const TextStyle(color: Colors.grey, fontSize: 12),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              autofocus: true,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              style: const TextStyle(color: Colors.white, fontSize: 18),
+              decoration: InputDecoration(
+                labelText:
+                    '${isWidth ? "Width" : "Height"} (${_getMeasurementUnitSymbol()})',
+                labelStyle: const TextStyle(color: Colors.grey),
+                hintText: 'e.g., 5.00',
+                hintStyle: const TextStyle(color: Colors.grey),
+                prefixIcon: Icon(
+                  Icons.straighten,
+                  color: Colors.blue,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.blue),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.blue, width: 2),
+                ),
+              ),
+              onSubmitted: (value) {
+                _saveQuickEditDimension(zone, dimension, value);
+                Navigator.pop(context);
+              },
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.blue.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: Colors.blue.withOpacity(0.3)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline, size: 14, color: Colors.blue),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'Press Enter or click Save',
+                      style: const TextStyle(color: Colors.grey, fontSize: 11),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              _saveQuickEditDimension(zone, dimension, controller.text);
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _saveQuickEditDimension(MapZone zone, String dimension, String value) {
+    final parsedValue = double.tryParse(value);
+    if (parsedValue == null || parsedValue <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter a valid positive number'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // Convert from real units to pixels
+    double realValueMeters;
+    switch (_measurementUnit) {
+      case 'meter':
+        realValueMeters = parsedValue;
+        break;
+      case 'cm':
+        realValueMeters = parsedValue / 100;
+        break;
+      case 'feet':
+        realValueMeters = parsedValue / 3.28084;
+        break;
+      default:
+        realValueMeters = parsedValue;
+    }
+
+    final pixels = realValueMeters / _mapScale;
+
+    setState(() {
+      if (dimension == 'width') {
+        zone.width = pixels;
+      } else {
+        zone.height = pixels;
+      }
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+            '${dimension == "width" ? "Width" : "Height"} updated to ${value}${_getMeasurementUnitSymbol()}'),
+        backgroundColor: const Color(0xFF00FFC6),
+        duration: const Duration(seconds: 1),
+      ),
+    );
+  }
+
+  String _getMeasurementUnitSymbol() {
+    switch (_measurementUnit) {
+      case 'meter':
+        return 'm';
+      case 'cm':
+        return 'cm';
+      case 'feet':
+        return 'ft';
+      default:
+        return 'm';
+    }
   }
 
   void _editAnchor(MapAnchor anchor) {
@@ -901,40 +1288,58 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
     );
   }
 
-  void _showWallInfo(MapWall wall) {
+  void _editWall(MapWall wall) {
     if (!mounted) return;
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1F2937),
-        title: const Text('Wall Info', style: TextStyle(color: Colors.white)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Type: Wall',
-                style: TextStyle(color: Colors.white, fontSize: 14)),
-            const SizedBox(height: 8),
-            Text(
-                'Length: ${((wall.x2 - wall.x1).abs() + (wall.y2 - wall.y1).abs()).toInt()} px',
-                style: TextStyle(color: Colors.grey, fontSize: 12)),
-            const SizedBox(height: 8),
-            Text(
-                'Position: (${wall.x1.toInt()}, ${wall.y1.toInt()}) → (${wall.x2.toInt()}, ${wall.y2.toInt()})',
-                style: TextStyle(color: Colors.grey, fontSize: 12)),
-            const SizedBox(height: 16),
-            const Text('Tip: Select and press Delete to remove',
-                style: TextStyle(color: Colors.orange, fontSize: 11)),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
+      builder: (context) => _EditWallDialog(
+        wall: wall,
+        mapScale: _mapScale,
+        measurementUnit: _measurementUnit,
+        onEdit: () {
+          if (mounted) {
+            setState(() {
+              // Wall updated
+            });
+          }
+        },
       ),
     );
+  }
+
+  void _showMapConfig() {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (context) => _MapConfigDialog(
+        scale: _mapScale,
+        unit: _measurementUnit,
+        showMeasurements: _showMeasurements,
+        onSave: (scale, unit, showMeas) {
+          if (mounted) {
+            setState(() {
+              _mapScale = scale;
+              _measurementUnit = unit;
+              _showMeasurements = showMeas;
+            });
+          }
+        },
+      ),
+    );
+  }
+
+  String _toRealSize(double pixels) {
+    double realSize = pixels * _mapScale;
+    switch (_measurementUnit) {
+      case 'meter':
+        return '${realSize.toStringAsFixed(2)}m';
+      case 'cm':
+        return '${(realSize * 100).toStringAsFixed(0)}cm';
+      case 'feet':
+        return '${(realSize * 3.28084).toStringAsFixed(2)}ft';
+      default:
+        return '${realSize.toStringAsFixed(2)}m';
+    }
   }
 
   void _addDoor() => setState(() =>
@@ -1057,9 +1462,175 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
         _walls.remove(_selectedElement);
       else if (_selectedElement is MapDoor)
         _doors.remove(_selectedElement);
-      else if (_selectedElement is MapAnchor) _anchors.remove(_selectedElement);
+      else if (_selectedElement is MapAnchor)
+        _anchors.remove(_selectedElement);
+      else if (_selectedElement is MapDistanceLine)
+        _distanceLines.remove(_selectedElement);
       _selectedElement = null;
     });
+  }
+
+  void _handleDistanceLineMeasurement(MapZone zone) {
+    if (_distanceLineStartZone == null) {
+      // First zone selected
+      setState(() {
+        _distanceLineStartZone = zone;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              'First zone "${zone.name}" selected. Click another zone to measure distance.'),
+          backgroundColor: Colors.blue,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } else if (_distanceLineStartZone == zone) {
+      // Same zone clicked - cancel
+      setState(() {
+        _distanceLineStartZone = null;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Distance measurement cancelled'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    } else {
+      // Second zone selected - create distance line
+      final newLine = MapDistanceLine(
+        startZone: _distanceLineStartZone!,
+        endZone: zone,
+      );
+      setState(() {
+        _distanceLines.add(newLine);
+        _distanceLineStartZone = null;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              'Distance line created between "${_distanceLineStartZone!.name}" and "${zone.name}"'),
+          backgroundColor: const Color(0xFF00FFC6),
+        ),
+      );
+    }
+  }
+
+  Widget _buildDistanceLine(MapDistanceLine line) {
+    final isSelected = _selectedElement == line;
+    final startPoint = line.startPoint;
+    final endPoint = line.endPoint;
+
+    // Calculate midpoint for label
+    final midX = (startPoint.dx + endPoint.dx) / 2;
+    final midY = (startPoint.dy + endPoint.dy) / 2;
+
+    // Calculate real distance
+    final dx = endPoint.dx - startPoint.dx;
+    final dy = endPoint.dy - startPoint.dy;
+    final lengthPx = (dx * dx + dy * dy).abs().toDouble();
+    final realSize = lengthPx * _mapScale;
+
+    String distanceText;
+    switch (_measurementUnit) {
+      case 'meter':
+        distanceText = '${realSize.toStringAsFixed(2)}m';
+        break;
+      case 'cm':
+        distanceText = '${(realSize * 100).toStringAsFixed(0)}cm';
+        break;
+      case 'feet':
+        distanceText = '${(realSize * 3.28084).toStringAsFixed(2)}ft';
+        break;
+      default:
+        distanceText = '${realSize.toStringAsFixed(2)}m';
+    }
+
+    return Stack(
+      children: [
+        // Distance line
+        Positioned(
+          left: 0,
+          top: 0,
+          child: GestureDetector(
+            onTap: _isEditMode
+                ? () => setState(() => _selectedElement = line)
+                : null,
+            onDoubleTap: _isEditMode ? () => _editDistanceLine(line) : null,
+            child: CustomPaint(
+              size: const Size(double.infinity, double.infinity),
+              painter: DistanceLinePainter(
+                startPoint: startPoint,
+                endPoint: endPoint,
+                isSelected: isSelected,
+              ),
+            ),
+          ),
+        ),
+        // Distance label
+        Positioned(
+          left: midX - 40,
+          top: midY - 20,
+          child: GestureDetector(
+            onTap: _isEditMode
+                ? () => setState(() => _selectedElement = line)
+                : null,
+            onDoubleTap: _isEditMode ? () => _editDistanceLine(line) : null,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: isSelected ? Colors.red : Colors.yellow.shade700,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isSelected ? Colors.white : Colors.yellow.shade900,
+                  width: isSelected ? 2 : 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.3),
+                    blurRadius: 4,
+                    spreadRadius: 1,
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.straighten, size: 14, color: Colors.white),
+                  const SizedBox(width: 4),
+                  Text(
+                    line.label ?? distanceText,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _editDistanceLine(MapDistanceLine line) {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (context) => _EditDistanceLineDialog(
+        line: line,
+        mapScale: _mapScale,
+        measurementUnit: _measurementUnit,
+        onEdit: () {
+          if (mounted) {
+            setState(() {
+              // Distance line updated
+            });
+          }
+        },
+      ),
+    );
   }
 
   void _showAnchorDetails(MapAnchor anchor) {
@@ -1213,6 +1784,34 @@ class MapAnchor extends MapElement {
       {required this.id, required this.name, required this.x, required this.y});
 }
 
+class MapDistanceLine extends MapElement {
+  MapZone startZone;
+  MapZone endZone;
+  String? label;
+  MapDistanceLine({
+    required this.startZone,
+    required this.endZone,
+    this.label,
+  });
+
+  // Calculate center points of zones
+  Offset get startPoint => Offset(
+        startZone.x + startZone.width / 2,
+        startZone.y + startZone.height / 2,
+      );
+
+  Offset get endPoint => Offset(
+        endZone.x + endZone.width / 2,
+        endZone.y + endZone.height / 2,
+      );
+
+  double get distanceInPixels {
+    final dx = endPoint.dx - startPoint.dx;
+    final dy = endPoint.dy - startPoint.dy;
+    return (dx * dx + dy * dy).abs();
+  }
+}
+
 enum TagType {
   worker(Colors.cyan, Icons.person, 'Worker'),
   vehicle(Colors.orange, Icons.local_shipping, 'Vehicle'),
@@ -1225,7 +1824,7 @@ enum TagType {
   const TagType(this.color, this.icon, this.label);
 }
 
-enum DrawingMode { none, zone, wall, door, anchor }
+enum DrawingMode { none, zone, wall, door, anchor, distance }
 
 // Painters
 class GridPainter extends CustomPainter {
@@ -1288,6 +1887,59 @@ class DoorPainter extends CustomPainter {
         Paint()..color = Colors.yellow);
     canvas.drawCircle(Offset(10 + panelWidth + 8, size.height / 2), 3,
         Paint()..color = Colors.yellow);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+
+class DistanceLinePainter extends CustomPainter {
+  final Offset startPoint;
+  final Offset endPoint;
+  final bool isSelected;
+
+  DistanceLinePainter({
+    required this.startPoint,
+    required this.endPoint,
+    required this.isSelected,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = isSelected ? Colors.red : Colors.yellow.shade700
+      ..strokeWidth = isSelected ? 3 : 2
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    // Draw dashed line
+    const dashWidth = 5;
+    const dashSpace = 5;
+
+    final dx = endPoint.dx - startPoint.dx;
+    final dy = endPoint.dy - startPoint.dy;
+    final distance = (dx * dx + dy * dy).abs().toDouble();
+    final steps = (distance / (dashWidth + dashSpace)).floor();
+
+    for (int i = 0; i < steps; i++) {
+      final t1 = (i * (dashWidth + dashSpace)) / distance;
+      final t2 = ((i * (dashWidth + dashSpace)) + dashWidth) / distance;
+
+      final x1 = startPoint.dx + dx * t1;
+      final y1 = startPoint.dy + dy * t1;
+      final x2 = startPoint.dx + dx * t2;
+      final y2 = startPoint.dy + dy * t2;
+
+      canvas.drawLine(Offset(x1, y1), Offset(x2, y2), paint);
+    }
+
+    // Draw endpoint circles
+    final circlePaint = Paint()
+      ..color = isSelected ? Colors.red : Colors.yellow.shade700
+      ..style = PaintingStyle.fill;
+
+    canvas.drawCircle(startPoint, 5, circlePaint);
+    canvas.drawCircle(endPoint, 5, circlePaint);
   }
 
   @override
@@ -1456,8 +2108,17 @@ class _AddZoneDialogState extends State<_AddZoneDialog> {
 
 class _EditZoneDialog extends StatefulWidget {
   final MapZone zone;
+  final double mapScale;
+  final String measurementUnit;
   final VoidCallback onEdit;
-  const _EditZoneDialog({required this.zone, required this.onEdit});
+
+  const _EditZoneDialog({
+    required this.zone,
+    required this.mapScale,
+    required this.measurementUnit,
+    required this.onEdit,
+  });
+
   @override
   State<_EditZoneDialog> createState() => _EditZoneDialogState();
 }
@@ -1467,15 +2128,18 @@ class _EditZoneDialogState extends State<_EditZoneDialog> {
   late TextEditingController _widthController;
   late TextEditingController _heightController;
   late Color _selectedColor;
+  bool _useRealUnits = true; // Toggle between pixels and real units
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.zone.name);
-    _widthController =
-        TextEditingController(text: widget.zone.width.toInt().toString());
+    // Initialize with real-world measurements
+    final widthReal = widget.zone.width * widget.mapScale;
+    final heightReal = widget.zone.height * widget.mapScale;
+    _widthController = TextEditingController(text: _formatRealValue(widthReal));
     _heightController =
-        TextEditingController(text: widget.zone.height.toInt().toString());
+        TextEditingController(text: _formatRealValue(heightReal));
     _selectedColor = widget.zone.color;
   }
 
@@ -1487,6 +2151,46 @@ class _EditZoneDialogState extends State<_EditZoneDialog> {
     super.dispose();
   }
 
+  String _formatRealValue(double realSize) {
+    switch (widget.measurementUnit) {
+      case 'meter':
+        return realSize.toStringAsFixed(2);
+      case 'cm':
+        return (realSize * 100).toStringAsFixed(0);
+      case 'feet':
+        return (realSize * 3.28084).toStringAsFixed(2);
+      default:
+        return realSize.toStringAsFixed(2);
+    }
+  }
+
+  double _parseRealValue(String text) {
+    final value = double.tryParse(text) ?? 0;
+    switch (widget.measurementUnit) {
+      case 'meter':
+        return value;
+      case 'cm':
+        return value / 100;
+      case 'feet':
+        return value / 3.28084;
+      default:
+        return value;
+    }
+  }
+
+  String _getUnitLabel() {
+    switch (widget.measurementUnit) {
+      case 'meter':
+        return 'm';
+      case 'cm':
+        return 'cm';
+      case 'feet':
+        return 'ft';
+      default:
+        return 'm';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -1495,6 +2199,7 @@ class _EditZoneDialogState extends State<_EditZoneDialog> {
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             TextField(
                 controller: _nameController,
@@ -1503,21 +2208,103 @@ class _EditZoneDialogState extends State<_EditZoneDialog> {
                     labelText: 'Zone Name',
                     labelStyle: TextStyle(color: Colors.grey))),
             const SizedBox(height: 16),
+            // Unit toggle switch
+            Row(
+              children: [
+                const Text('Use Real Units',
+                    style: TextStyle(color: Colors.grey)),
+                const Spacer(),
+                Switch(
+                  value: _useRealUnits,
+                  activeColor: Colors.blue,
+                  onChanged: (value) {
+                    setState(() {
+                      if (value) {
+                        // Convert from pixels to real units
+                        final widthPx =
+                            double.tryParse(_widthController.text) ??
+                                widget.zone.width;
+                        final heightPx =
+                            double.tryParse(_heightController.text) ??
+                                widget.zone.height;
+                        final widthReal = widthPx * widget.mapScale;
+                        final heightReal = heightPx * widget.mapScale;
+                        _widthController.text = _formatRealValue(widthReal);
+                        _heightController.text = _formatRealValue(heightReal);
+                      } else {
+                        // Convert from real units to pixels
+                        final widthReal =
+                            _parseRealValue(_widthController.text);
+                        final heightReal =
+                            _parseRealValue(_heightController.text);
+                        _widthController.text =
+                            (widthReal / widget.mapScale).toInt().toString();
+                        _heightController.text =
+                            (heightReal / widget.mapScale).toInt().toString();
+                      }
+                      _useRealUnits = value;
+                    });
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            // Width input
             TextField(
                 controller: _widthController,
-                keyboardType: TextInputType.number,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
                 style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                    labelText: 'Width',
-                    labelStyle: TextStyle(color: Colors.grey))),
+                decoration: InputDecoration(
+                    labelText: _useRealUnits
+                        ? 'Width (${_getUnitLabel()})'
+                        : 'Width (pixels)',
+                    labelStyle: const TextStyle(color: Colors.grey),
+                    hintText: _useRealUnits ? 'e.g., 5.00' : 'e.g., 200',
+                    hintStyle: const TextStyle(color: Colors.grey))),
             const SizedBox(height: 16),
+            // Height input
             TextField(
                 controller: _heightController,
-                keyboardType: TextInputType.number,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
                 style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                    labelText: 'Height',
-                    labelStyle: TextStyle(color: Colors.grey))),
+                decoration: InputDecoration(
+                    labelText: _useRealUnits
+                        ? 'Height (${_getUnitLabel()})'
+                        : 'Height (pixels)',
+                    labelStyle: const TextStyle(color: Colors.grey),
+                    hintText: _useRealUnits ? 'e.g., 3.75' : 'e.g., 150',
+                    hintStyle: const TextStyle(color: Colors.grey))),
+            const SizedBox(height: 16),
+            // Preview calculation
+            if (_useRealUnits)
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Real-world Size:',
+                      style: TextStyle(color: Colors.grey, fontSize: 12),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${_widthController.text} ${_getUnitLabel()} × ${_heightController.text} ${_getUnitLabel()}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             const SizedBox(height: 16),
             const Text('Color:', style: TextStyle(color: Colors.grey)),
             const SizedBox(height: 8),
@@ -1555,10 +2342,22 @@ class _EditZoneDialogState extends State<_EditZoneDialog> {
             onPressed: () {
               widget.zone.name =
                   _nameController.text.isEmpty ? 'Zone' : _nameController.text;
-              widget.zone.width =
-                  double.tryParse(_widthController.text) ?? widget.zone.width;
-              widget.zone.height =
-                  double.tryParse(_heightController.text) ?? widget.zone.height;
+
+              // Parse dimensions based on unit mode
+              if (_useRealUnits) {
+                // Convert from real units to pixels
+                final widthReal = _parseRealValue(_widthController.text);
+                final heightReal = _parseRealValue(_heightController.text);
+                widget.zone.width = widthReal / widget.mapScale;
+                widget.zone.height = heightReal / widget.mapScale;
+              } else {
+                // Direct pixel input
+                widget.zone.width =
+                    double.tryParse(_widthController.text) ?? widget.zone.width;
+                widget.zone.height = double.tryParse(_heightController.text) ??
+                    widget.zone.height;
+              }
+
               widget.zone.color = _selectedColor;
               widget.onEdit();
               Navigator.pop(context);
@@ -1823,6 +2622,506 @@ class _EditDoorDialogState extends State<_EditDoorDialog> {
               Navigator.pop(context);
             },
             child: const Text('Save')),
+      ],
+    );
+  }
+}
+
+class _MapConfigDialog extends StatefulWidget {
+  final double scale;
+  final String unit;
+  final bool showMeasurements;
+  final Function(double, String, bool) onSave;
+
+  const _MapConfigDialog({
+    required this.scale,
+    required this.unit,
+    required this.showMeasurements,
+    required this.onSave,
+  });
+
+  @override
+  State<_MapConfigDialog> createState() => _MapConfigDialogState();
+}
+
+class _MapConfigDialogState extends State<_MapConfigDialog> {
+  late TextEditingController _scaleController;
+  late String _selectedUnit;
+  late bool _showMeasurements;
+
+  @override
+  void initState() {
+    super.initState();
+    _scaleController = TextEditingController(text: widget.scale.toString());
+    _selectedUnit = widget.unit;
+    _showMeasurements = widget.showMeasurements;
+  }
+
+  @override
+  void dispose() {
+    _scaleController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: const Color(0xFF1F2937),
+      title: const Text('Map Configuration',
+          style: TextStyle(color: Colors.white)),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Map Scale (1 pixel = ? meters)',
+              style: TextStyle(color: Colors.grey, fontSize: 12),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _scaleController,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                labelText: 'Scale (e.g., 0.025)',
+                labelStyle: TextStyle(color: Colors.grey),
+                hintText: '0.025',
+                hintStyle: TextStyle(color: Colors.grey),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Measurement Unit',
+              style: TextStyle(color: Colors.grey, fontSize: 12),
+            ),
+            const SizedBox(height: 8),
+            DropdownButton<String>(
+              value: _selectedUnit,
+              dropdownColor: const Color(0xFF1F2937),
+              style: const TextStyle(color: Colors.white),
+              items: const [
+                DropdownMenuItem(value: 'meter', child: Text('Meters (m)')),
+                DropdownMenuItem(value: 'cm', child: Text('Centimeters (cm)')),
+                DropdownMenuItem(value: 'feet', child: Text('Feet (ft)')),
+              ],
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() {
+                    _selectedUnit = value;
+                  });
+                }
+              },
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Checkbox(
+                  value: _showMeasurements,
+                  activeColor: Colors.blue,
+                  onChanged: (value) {
+                    setState(() {
+                      _showMeasurements = value ?? true;
+                    });
+                  },
+                ),
+                const Text(
+                  'Show measurements on elements',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () {
+            final scale =
+                double.tryParse(_scaleController.text) ?? widget.scale;
+            widget.onSave(scale, _selectedUnit, _showMeasurements);
+            Navigator.pop(context);
+          },
+          child: const Text('Save'),
+        ),
+      ],
+    );
+  }
+}
+
+class _EditWallDialog extends StatefulWidget {
+  final MapWall wall;
+  final double mapScale;
+  final String measurementUnit;
+  final VoidCallback onEdit;
+
+  const _EditWallDialog({
+    required this.wall,
+    required this.mapScale,
+    required this.measurementUnit,
+    required this.onEdit,
+  });
+
+  @override
+  State<_EditWallDialog> createState() => _EditWallDialogState();
+}
+
+class _EditWallDialogState extends State<_EditWallDialog> {
+  late TextEditingController _x1Controller;
+  late TextEditingController _y1Controller;
+  late TextEditingController _x2Controller;
+  late TextEditingController _y2Controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _x1Controller =
+        TextEditingController(text: widget.wall.x1.toStringAsFixed(1));
+    _y1Controller =
+        TextEditingController(text: widget.wall.y1.toStringAsFixed(1));
+    _x2Controller =
+        TextEditingController(text: widget.wall.x2.toStringAsFixed(1));
+    _y2Controller =
+        TextEditingController(text: widget.wall.y2.toStringAsFixed(1));
+  }
+
+  @override
+  void dispose() {
+    _x1Controller.dispose();
+    _y1Controller.dispose();
+    _x2Controller.dispose();
+    _y2Controller.dispose();
+    super.dispose();
+  }
+
+  String _calculateLength() {
+    final x1 = double.tryParse(_x1Controller.text) ?? widget.wall.x1;
+    final y1 = double.tryParse(_y1Controller.text) ?? widget.wall.y1;
+    final x2 = double.tryParse(_x2Controller.text) ?? widget.wall.x2;
+    final y2 = double.tryParse(_y2Controller.text) ?? widget.wall.y2;
+
+    final dx = x2 - x1;
+    final dy = y2 - y1;
+    final lengthPx = (dx * dx + dy * dy).abs().toDouble();
+    final realSize = lengthPx * widget.mapScale;
+
+    switch (widget.measurementUnit) {
+      case 'meter':
+        return '${realSize.toStringAsFixed(2)}m';
+      case 'cm':
+        return '${(realSize * 100).toStringAsFixed(0)}cm';
+      case 'feet':
+        return '${(realSize * 3.28084).toStringAsFixed(2)}ft';
+      default:
+        return '${realSize.toStringAsFixed(2)}m';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: const Color(0xFF1F2937),
+      title: const Text('Edit Wall', style: TextStyle(color: Colors.white)),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Start Point',
+              style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _x1Controller,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    style: const TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(
+                      labelText: 'X1',
+                      labelStyle: TextStyle(color: Colors.grey),
+                    ),
+                    onChanged: (_) => setState(() {}),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextField(
+                    controller: _y1Controller,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    style: const TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(
+                      labelText: 'Y1',
+                      labelStyle: TextStyle(color: Colors.grey),
+                    ),
+                    onChanged: (_) => setState(() {}),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'End Point',
+              style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _x2Controller,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    style: const TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(
+                      labelText: 'X2',
+                      labelStyle: TextStyle(color: Colors.grey),
+                    ),
+                    onChanged: (_) => setState(() {}),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextField(
+                    controller: _y2Controller,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    style: const TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(
+                      labelText: 'Y2',
+                      labelStyle: TextStyle(color: Colors.grey),
+                    ),
+                    onChanged: (_) => setState(() {}),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF007AFF).withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.straighten, color: Colors.white, size: 20),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Length: ',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                  Text(
+                    _calculateLength(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Tip: You can also drag the blue/red endpoints on the map',
+              style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 11,
+                  fontStyle: FontStyle.italic),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () {
+            widget.wall.x1 =
+                double.tryParse(_x1Controller.text) ?? widget.wall.x1;
+            widget.wall.y1 =
+                double.tryParse(_y1Controller.text) ?? widget.wall.y1;
+            widget.wall.x2 =
+                double.tryParse(_x2Controller.text) ?? widget.wall.x2;
+            widget.wall.y2 =
+                double.tryParse(_y2Controller.text) ?? widget.wall.y2;
+            widget.onEdit();
+            Navigator.pop(context);
+          },
+          child: const Text('Save'),
+        ),
+      ],
+    );
+  }
+}
+
+class _EditDistanceLineDialog extends StatefulWidget {
+  final MapDistanceLine line;
+  final double mapScale;
+  final String measurementUnit;
+  final VoidCallback onEdit;
+
+  const _EditDistanceLineDialog({
+    required this.line,
+    required this.mapScale,
+    required this.measurementUnit,
+    required this.onEdit,
+  });
+
+  @override
+  State<_EditDistanceLineDialog> createState() =>
+      _EditDistanceLineDialogState();
+}
+
+class _EditDistanceLineDialogState extends State<_EditDistanceLineDialog> {
+  late TextEditingController _labelController;
+
+  @override
+  void initState() {
+    super.initState();
+    _labelController = TextEditingController(text: widget.line.label ?? '');
+  }
+
+  @override
+  void dispose() {
+    _labelController.dispose();
+    super.dispose();
+  }
+
+  String _calculateDistance() {
+    final dx = widget.line.endPoint.dx - widget.line.startPoint.dx;
+    final dy = widget.line.endPoint.dy - widget.line.startPoint.dy;
+    final lengthPx = (dx * dx + dy * dy).abs().toDouble();
+    final realSize = lengthPx * widget.mapScale;
+
+    switch (widget.measurementUnit) {
+      case 'meter':
+        return '${realSize.toStringAsFixed(2)}m';
+      case 'cm':
+        return '${(realSize * 100).toStringAsFixed(0)}cm';
+      case 'feet':
+        return '${(realSize * 3.28084).toStringAsFixed(2)}ft';
+      default:
+        return '${realSize.toStringAsFixed(2)}m';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: const Color(0xFF1F2937),
+      title: const Text('Edit Distance Line',
+          style: TextStyle(color: Colors.white)),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Distance Information',
+              style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(Icons.place, color: Colors.blue, size: 16),
+                const SizedBox(width: 8),
+                Text(
+                  'From: ${widget.line.startZone.name}',
+                  style: const TextStyle(color: Colors.white70),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                const Icon(Icons.place, color: Colors.red, size: 16),
+                const SizedBox(width: 8),
+                Text(
+                  'To: ${widget.line.endZone.name}',
+                  style: const TextStyle(color: Colors.white70),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.yellow.shade700.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.yellow.shade700),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.straighten, color: Colors.white, size: 20),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Calculated Distance: ',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                  Text(
+                    _calculateDistance(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Custom Label (optional)',
+              style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _labelController,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                labelText: 'Label',
+                labelStyle: TextStyle(color: Colors.grey),
+                hintText: 'Leave empty to show calculated distance',
+                hintStyle: TextStyle(color: Colors.grey),
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Note: The distance is automatically calculated based on zone positions',
+              style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 11,
+                  fontStyle: FontStyle.italic),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () {
+            widget.line.label =
+                _labelController.text.isEmpty ? null : _labelController.text;
+            widget.onEdit();
+            Navigator.pop(context);
+          },
+          child: const Text('Save'),
+        ),
       ],
     );
   }
