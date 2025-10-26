@@ -219,14 +219,7 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
                           borderRadius:
                               BorderRadius.circular(12), // Smaller radius
                           border: Border.all(
-                              color: const Color(0xFF007AFF).withOpacity(0.5)),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.3),
-                              blurRadius: 8,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
+                              color: const Color(0xFF007AFF).withOpacity(0.3)),
                         ),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(12),
@@ -319,18 +312,10 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
   // New method to build dashboard tables
   Widget _buildDashboardTables() {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: const Color(0xFF1F2937),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF007AFF).withOpacity(0.5)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.3),
-            blurRadius: 6,
-            offset: const Offset(0, -2),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -338,159 +323,149 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
           const Text(
             'Dashboard',
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 14,
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Expanded(
-            child: SingleChildScrollView(
+            child: ListView(
               scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  // Active Tags
-                  _buildExpandableDashboardCard(
-                    title: 'Active Tags',
-                    count: _tags.length,
-                    icon: Icons.sensors,
-                    isExpanded: _isTagsExpanded,
-                    onToggle: () =>
-                        setState(() => _isTagsExpanded = !_isTagsExpanded),
-                    content: _isTagsExpanded
-                        ? SizedBox(
-                            width: 250,
-                            child: ListView.builder(
-                              shrinkWrap: true,
-                              itemCount: _tags.length,
-                              itemBuilder: (context, index) {
-                                final tag = _tags[index];
-                                return ListTile(
-                                  title: Text(
-                                    tag.name,
-                                    style: const TextStyle(
-                                        color: Colors.white, fontSize: 12),
-                                  ),
-                                  subtitle: Text(
-                                    '${tag.type.label} - ${tag.id}',
-                                    style: const TextStyle(
-                                        color: Colors.grey, fontSize: 10),
-                                  ),
-                                  trailing: Icon(tag.type.icon,
-                                      color: tag.type.color, size: 16),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 2),
-                                );
-                              },
-                            ),
-                          )
-                        : const SizedBox(),
-                  ),
-                  // Doors
-                  _buildExpandableDashboardCard(
-                    title: 'Doors',
-                    count: _doors.length,
-                    icon: Icons.sensor_door,
-                    isExpanded: _isDoorsExpanded,
-                    onToggle: () =>
-                        setState(() => _isDoorsExpanded = !_isDoorsExpanded),
-                    content: _isDoorsExpanded
-                        ? SizedBox(
-                            width: 250,
-                            child: ListView.builder(
-                              shrinkWrap: true,
-                              itemCount: _doors.length,
-                              itemBuilder: (context, index) {
-                                final door = _doors[index];
-                                return ListTile(
-                                  title: Text(
-                                    door.name,
-                                    style: const TextStyle(
-                                        color: Colors.white, fontSize: 12),
-                                  ),
-                                  subtitle: Text(
-                                    'Pos: (${door.x.toStringAsFixed(0)}, ${door.y.toStringAsFixed(0)})',
-                                    style: const TextStyle(
-                                        color: Colors.grey, fontSize: 10),
-                                  ),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 2),
-                                );
-                              },
-                            ),
-                          )
-                        : const SizedBox(),
-                  ),
-                  // Sensors (using anchors as sensors)
-                  _buildExpandableDashboardCard(
-                    title: 'Sensors',
-                    count: _anchors.length,
-                    icon: Icons.router,
-                    isExpanded: _isSensorsExpanded,
-                    onToggle: () => setState(
-                        () => _isSensorsExpanded = !_isSensorsExpanded),
-                    content: _isSensorsExpanded
-                        ? SizedBox(
-                            width: 250,
-                            child: ListView.builder(
-                              shrinkWrap: true,
-                              itemCount: _anchors.length,
-                              itemBuilder: (context, index) {
-                                final anchor = _anchors[index];
-                                return ListTile(
-                                  title: Text(
-                                    anchor.name,
-                                    style: const TextStyle(
-                                        color: Colors.white, fontSize: 12),
-                                  ),
-                                  subtitle: Text(
-                                    'ID: ${anchor.id} - Pos: (${anchor.x.toStringAsFixed(0)}, ${anchor.y.toStringAsFixed(0)})',
-                                    style: const TextStyle(
-                                        color: Colors.grey, fontSize: 10),
-                                  ),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 2),
-                                );
-                              },
-                            ),
-                          )
-                        : const SizedBox(),
-                  ),
-                  // Alerts (placeholder)
-                  _buildExpandableDashboardCard(
-                    title: 'Alerts',
-                    count: 0,
-                    icon: Icons.warning,
-                    isExpanded: _isAlertsExpanded,
-                    onToggle: () =>
-                        setState(() => _isAlertsExpanded = !_isAlertsExpanded),
-                    content: _isAlertsExpanded
-                        ? SizedBox(
-                            width: 250,
-                            child: ListView(
-                              shrinkWrap: true,
-                              children: const [
-                                ListTile(
-                                  title: Text(
-                                    'No alerts',
-                                    style: TextStyle(
-                                        color: Colors.white, fontSize: 12),
-                                  ),
-                                  subtitle: Text(
-                                    'System operating normally',
-                                    style: TextStyle(
-                                        color: Colors.grey, fontSize: 10),
-                                  ),
-                                  contentPadding: EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 2),
+              children: [
+                // Active Tags
+                _buildExpandableDashboardCard(
+                  title: 'Active Tags',
+                  count: _tags.length,
+                  icon: Icons.sensors,
+                  isExpanded: _isTagsExpanded,
+                  onToggle: () =>
+                      setState(() => _isTagsExpanded = !_isTagsExpanded),
+                  content: _isTagsExpanded
+                      ? SizedBox(
+                          width: 200,
+                          child: ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: _tags.length,
+                            itemBuilder: (context, index) {
+                              final tag = _tags[index];
+                              return ListTile(
+                                title: Text(
+                                  tag.name,
+                                  style: const TextStyle(
+                                      color: Colors.white, fontSize: 12),
                                 ),
-                              ],
-                            ),
-                          )
-                        : const SizedBox(),
-                  ),
-                ],
-              ),
+                                subtitle: Text(
+                                  '${tag.type.label} - ${tag.id}',
+                                  style: const TextStyle(
+                                      color: Colors.grey, fontSize: 10),
+                                ),
+                                trailing: Icon(tag.type.icon,
+                                    color: tag.type.color, size: 16),
+                              );
+                            },
+                          ),
+                        )
+                      : const SizedBox(),
+                ),
+                // Doors
+                _buildExpandableDashboardCard(
+                  title: 'Doors',
+                  count: _doors.length,
+                  icon: Icons.sensor_door,
+                  isExpanded: _isDoorsExpanded,
+                  onToggle: () =>
+                      setState(() => _isDoorsExpanded = !_isDoorsExpanded),
+                  content: _isDoorsExpanded
+                      ? SizedBox(
+                          width: 200,
+                          child: ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: _doors.length,
+                            itemBuilder: (context, index) {
+                              final door = _doors[index];
+                              return ListTile(
+                                title: Text(
+                                  door.name,
+                                  style: const TextStyle(
+                                      color: Colors.white, fontSize: 12),
+                                ),
+                                subtitle: Text(
+                                  'Position: (${door.x.toStringAsFixed(0)}, ${door.y.toStringAsFixed(0)})',
+                                  style: const TextStyle(
+                                      color: Colors.grey, fontSize: 10),
+                                ),
+                              );
+                            },
+                          ),
+                        )
+                      : const SizedBox(),
+                ),
+                // Sensors (using anchors as sensors)
+                _buildExpandableDashboardCard(
+                  title: 'Sensors',
+                  count: _anchors.length,
+                  icon: Icons.router,
+                  isExpanded: _isSensorsExpanded,
+                  onToggle: () =>
+                      setState(() => _isSensorsExpanded = !_isSensorsExpanded),
+                  content: _isSensorsExpanded
+                      ? SizedBox(
+                          width: 200,
+                          child: ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: _anchors.length,
+                            itemBuilder: (context, index) {
+                              final anchor = _anchors[index];
+                              return ListTile(
+                                title: Text(
+                                  anchor.name,
+                                  style: const TextStyle(
+                                      color: Colors.white, fontSize: 12),
+                                ),
+                                subtitle: Text(
+                                  'ID: ${anchor.id} - Position: (${anchor.x.toStringAsFixed(0)}, ${anchor.y.toStringAsFixed(0)})',
+                                  style: const TextStyle(
+                                      color: Colors.grey, fontSize: 10),
+                                ),
+                              );
+                            },
+                          ),
+                        )
+                      : const SizedBox(),
+                ),
+                // Alerts (placeholder)
+                _buildExpandableDashboardCard(
+                  title: 'Alerts',
+                  count: 0,
+                  icon: Icons.warning,
+                  isExpanded: _isAlertsExpanded,
+                  onToggle: () =>
+                      setState(() => _isAlertsExpanded = !_isAlertsExpanded),
+                  content: _isAlertsExpanded
+                      ? SizedBox(
+                          width: 200,
+                          child: ListView(
+                            shrinkWrap: true,
+                            children: const [
+                              ListTile(
+                                title: Text(
+                                  'No alerts',
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 12),
+                                ),
+                                subtitle: Text(
+                                  'System is operating normally',
+                                  style: TextStyle(
+                                      color: Colors.grey, fontSize: 10),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : const SizedBox(),
+                ),
+              ],
             ),
           ),
         ],
@@ -508,19 +483,12 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
     required Widget content,
   }) {
     return Container(
-      width: isExpanded ? 300 : 150,
-      margin: const EdgeInsets.only(right: 12),
+      width: isExpanded ? 250 : 120,
+      margin: const EdgeInsets.only(right: 8),
       decoration: BoxDecoration(
         color: const Color(0xFF0B0C10),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF007AFF).withOpacity(0.5)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 4,
-            offset: const Offset(1, 1),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFF007AFF).withOpacity(0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -528,28 +496,27 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
           GestureDetector(
             onTap: onToggle,
             child: Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: const Color(0xFF1F2937),
                 borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(12)),
+                    const BorderRadius.vertical(top: Radius.circular(8)),
                 border: Border(
                   bottom: BorderSide(
-                    color: const Color(0xFF007AFF).withOpacity(0.5),
-                    width: 1,
+                    color: const Color(0xFF007AFF).withOpacity(0.3),
                   ),
                 ),
               ),
               child: Row(
                 children: [
-                  Icon(icon, color: const Color(0xFF00FFC6), size: 20),
-                  const SizedBox(width: 8),
+                  Icon(icon, color: const Color(0xFF00FFC6), size: 16),
+                  const SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       '$title ($count)',
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 14,
+                        fontSize: 12,
                         fontWeight: FontWeight.bold,
                       ),
                       overflow: TextOverflow.ellipsis,
@@ -558,8 +525,8 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
                   const Spacer(),
                   Icon(
                     isExpanded ? Icons.expand_less : Icons.expand_more,
-                    color: Colors.white,
-                    size: 20,
+                    color: Colors.grey,
+                    size: 16,
                   ),
                 ],
               ),
@@ -573,33 +540,98 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
 
   // Show dialog for flexible map creation
   void _showFlexibleMapCreationDialog() {
+    final floorNameController = TextEditingController(text: 'Floor 1');
+    final scaleController = TextEditingController(text: _mapScale.toString());
+    String selectedUnit = _measurementUnit;
+
     showDialog(
       context: context,
-      builder: (context) => _FlexibleMapCreationDialog(
-        onCreate: (String floorName, double scale, String unit) {
-          setState(() {
-            // Add new floor
-            _backgroundManager.addFloor(floorName);
-            _backgroundManager
-                .switchToFloor(_backgroundManager.floors.length - 1);
-
-            // Set map scale and unit
-            _mapScale = scale;
-            _measurementUnit = unit;
-
-            // Create new map
-            _backgroundManager.createNewMap();
-          });
-
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('New map created: $floorName'),
-                backgroundColor: const Color(0xFF00FFC6),
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1F2937),
+        title:
+            const Text('Create New Map', style: TextStyle(color: Colors.white)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: floorNameController,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                labelText: 'Floor Name',
+                labelStyle: TextStyle(color: Colors.grey),
+                hintText: 'e.g., Floor 1',
+                hintStyle: TextStyle(color: Colors.grey),
               ),
-            );
-          }
-        },
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: scaleController,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                labelText: 'Map Scale (m/px)',
+                labelStyle: TextStyle(color: Colors.grey),
+                hintText: 'e.g., 0.025',
+                hintStyle: TextStyle(color: Colors.grey),
+              ),
+            ),
+            const SizedBox(height: 16),
+            DropdownButton<String>(
+              value: selectedUnit,
+              dropdownColor: const Color(0xFF1F2937),
+              style: const TextStyle(color: Colors.white),
+              items: const [
+                DropdownMenuItem(value: 'meter', child: Text('Meters')),
+                DropdownMenuItem(value: 'cm', child: Text('Centimeters')),
+                DropdownMenuItem(value: 'feet', child: Text('Feet')),
+              ],
+              onChanged: (value) {
+                if (value != null) {
+                  selectedUnit = value;
+                }
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              final floorName = floorNameController.text;
+              final scale = double.tryParse(scaleController.text) ?? 0.025;
+
+              setState(() {
+                // Add new floor
+                _backgroundManager.addFloor(floorName);
+                _backgroundManager
+                    .switchToFloor(_backgroundManager.floors.length - 1);
+
+                // Set map scale and unit
+                _mapScale = scale;
+                _measurementUnit = selectedUnit;
+
+                // Create new map
+                _backgroundManager.createNewMap();
+              });
+
+              Navigator.pop(context);
+
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('New map created: $floorName'),
+                    backgroundColor: const Color(0xFF00FFC6),
+                  ),
+                );
+              }
+            },
+            child: const Text('Create'),
+          ),
+        ],
       ),
     );
   }
@@ -715,402 +747,46 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
     );
   }
 
-  Widget _buildZone(MapZone zone) {
-    final isSelected = _selectedElement == zone;
-    return Positioned(
-      left: zone.x,
-      top: zone.y,
-      child: GestureDetector(
-        onTap: _isEditMode
-            ? () {
-                if (_drawingMode == DrawingMode.distance) {
-                  _handleDistanceLineMeasurement(zone);
-                } else {
-                  setState(() => _selectedElement = zone);
-                }
-              }
-            : null,
-        onDoubleTap: _isEditMode ? () => _editZone(zone) : null,
-        onPanUpdate: _isEditMode && _drawingMode != DrawingMode.distance
-            ? (details) => setState(() {
-                  zone.x += details.delta.dx;
-                  zone.y += details.delta.dy;
-                })
-            : null,
-        child: Container(
-          width: zone.width,
-          height: zone.height,
-          decoration: BoxDecoration(
-            color: zone.color
-                .withOpacity(0.4), // Increased opacity for better visibility
-            border: Border.all(
-                color: isSelected ? Colors.red : zone.color,
-                width: isSelected ? 3 : 2),
-            borderRadius: BorderRadius.circular(12), // Increased border radius
-          ),
-          child: Stack(
-            children: [
-              // Zone name in center
-              Center(
-                child: Text(
-                  zone.name,
-                  style: TextStyle(
-                    color: zone.color,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16, // Increased font size
-                  ),
-                ),
-              ),
-              // Measurement badges - CLICKABLE TO EDIT!
-              if (_showMeasurements)
-                // Width badge (top) - EDITABLE
-                Positioned(
-                  top: 4,
-                  left: 0,
-                  right: 0,
-                  child: Center(
-                    child: GestureDetector(
-                      onTap: _isEditMode
-                          ? () => _quickEditZoneDimension(zone, 'width')
-                          : null,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: _isEditMode
-                              ? Colors.blue.withOpacity(0.9)
-                              : Colors.black.withOpacity(0.7),
-                          borderRadius: BorderRadius.circular(6),
-                          border: _isEditMode
-                              ? Border.all(color: Colors.white, width: 2)
-                              : null,
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (_isEditMode)
-                              const Icon(Icons.edit,
-                                  size: 14, color: Colors.white),
-                            if (_isEditMode) const SizedBox(width: 4),
-                            Text(
-                              _toRealSize(zone.width),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              if (_showMeasurements)
-                // Height badge (left side) - EDITABLE
-                Positioned(
-                  left: 4,
-                  top: 0,
-                  bottom: 0,
-                  child: Center(
-                    child: GestureDetector(
-                      onTap: _isEditMode
-                          ? () => _quickEditZoneDimension(zone, 'height')
-                          : null,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 4, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: _isEditMode
-                              ? Colors.blue.withOpacity(0.9)
-                              : Colors.black.withOpacity(0.7),
-                          borderRadius: BorderRadius.circular(6),
-                          border: _isEditMode
-                              ? Border.all(color: Colors.white, width: 2)
-                              : null,
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (_isEditMode)
-                              const Icon(Icons.edit,
-                                  size: 14, color: Colors.white),
-                            if (_isEditMode) const SizedBox(width: 4),
-                            Text(
-                              _toRealSize(zone.height),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildWall(MapWall wall) {
-    final isSelected = _selectedElement == wall;
-    // Calculate the position and dimensions based on the two points
-    final left = wall.x1 < wall.x2 ? wall.x1 : wall.x2;
-    final top = wall.y1 < wall.y2 ? wall.y1 : wall.y2;
-    final width = (wall.x2 - wall.x1).abs();
-    final height = 8.0; // Increased height for better visibility
-
-    return Positioned(
-      left: left,
-      top: top,
-      child: GestureDetector(
-        onTap:
-            _isEditMode ? () => setState(() => _selectedElement = wall) : null,
-        onDoubleTap: _isEditMode ? () => _editWall(wall) : null,
-        onPanUpdate: _isEditMode
-            ? (details) => setState(() {
-                  wall.x1 += details.delta.dx;
-                  wall.y1 += details.delta.dy;
-                  wall.x2 += details.delta.dx;
-                  wall.y2 += details.delta.dy;
-                })
-            : null,
-        child: Container(
-          width: width,
-          height: height,
-          decoration: BoxDecoration(
-            color: isSelected ? Colors.red : Colors.grey[700]!,
-            border: Border.all(
-                color: isSelected ? Colors.red : Colors.grey[700]!,
-                width: isSelected ? 3 : 2),
-            borderRadius: BorderRadius.circular(4), // Increased border radius
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDoor(MapDoor door) {
-    final isSelected = _selectedElement == door;
-    return Positioned(
-      left: door.x,
-      top: door.y,
-      child: GestureDetector(
-        onTap:
-            _isEditMode ? () => setState(() => _selectedElement = door) : null,
-        onDoubleTap: _isEditMode ? () => _editDoor(door) : null,
-        onPanUpdate: _isEditMode
-            ? (details) => setState(() {
-                  door.x += details.delta.dx;
-                  door.y += details.delta.dy;
-                })
-            : null,
-        child: Container(
-          width: 30,
-          height: 30,
-          decoration: BoxDecoration(
-            color: isSelected ? Colors.red : Colors.brown,
-            border: Border.all(
-                color: isSelected ? Colors.red : Colors.brown,
-                width: isSelected ? 3 : 2),
-            borderRadius: BorderRadius.circular(6),
-            shape: BoxShape.rectangle,
-          ),
-          child:
-              const Icon(Icons.door_front_door, color: Colors.white, size: 20),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAnchor(MapAnchor anchor) {
-    final isSelected = _selectedElement == anchor;
-    return Positioned(
-      left: anchor.x,
-      top: anchor.y,
-      child: GestureDetector(
-        onTap: _isEditMode
-            ? () => setState(() => _selectedElement = anchor)
-            : null,
-        onDoubleTap: _isEditMode ? () => _editAnchor(anchor) : null,
-        onPanUpdate: _isEditMode
-            ? (details) => setState(() {
-                  anchor.x += details.delta.dx;
-                  anchor.y += details.delta.dy;
-                })
-            : null,
-        child: Container(
-          width: 24,
-          height: 24,
-          decoration: BoxDecoration(
-            color: isSelected ? Colors.red : Colors.red,
-            border: Border.all(
-                color: isSelected ? Colors.red : Colors.red,
-                width: isSelected ? 3 : 2),
-            borderRadius: BorderRadius.circular(12),
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(Icons.router, color: Colors.white, size: 16),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDistanceLine(MapDistanceLine line) {
-    final isSelected = _selectedElement == line;
-    // Calculate the position and dimensions based on the two points
-    final startPoint = line.startPoint;
-    final endPoint = line.endPoint;
-    final left = startPoint.dx < endPoint.dx ? startPoint.dx : endPoint.dx;
-    final top = startPoint.dy < endPoint.dy ? startPoint.dy : endPoint.dy;
-    final width = (endPoint.dx - startPoint.dx).abs();
-    final height = 4.0; // Increased height for better visibility
-
-    // Calculate real distance
-    final realDistance = width * _mapScale;
-    final distanceText = _formatDistance(realDistance);
-
-    return Positioned(
-      left: left,
-      top: top,
-      child: GestureDetector(
-        onTap:
-            _isEditMode ? () => setState(() => _selectedElement = line) : null,
-        onDoubleTap: _isEditMode ? () => _editDistanceLine(line) : null,
-        onPanUpdate: _isEditMode
-            ? (details) => setState(() {
-                  // Move both zones together
-                  line.startZone.x += details.delta.dx;
-                  line.startZone.y += details.delta.dy;
-                  line.endZone.x += details.delta.dx;
-                  line.endZone.y += details.delta.dy;
-                })
-            : null,
-        child: Container(
-          width: width,
-          height: height,
-          decoration: BoxDecoration(
-            color: isSelected ? Colors.red : Colors.yellow.shade700,
-            border: Border.all(
-                color: isSelected ? Colors.red : Colors.yellow.shade700,
-                width: isSelected ? 3 : 2),
-            borderRadius: BorderRadius.circular(2),
-          ),
-          child: _showMeasurements
-              ? Center(
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.8),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      distanceText,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                )
-              : null,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTag(MapTag tag) {
-    final isSelected = _selectedElement == tag;
-    return Positioned(
-      left: tag.x,
-      top: tag.y,
-      child: GestureDetector(
-        onTap:
-            _isEditMode ? () => setState(() => _selectedElement = tag) : null,
-        onDoubleTap: _isEditMode ? () => _editTag(tag) : null,
-        onPanUpdate: _isEditMode
-            ? (details) => setState(() {
-                  tag.x += details.delta.dx;
-                  tag.y += details.delta.dy;
-                })
-            : null,
-        child: Container(
-          width: 32,
-          height: 32,
-          decoration: BoxDecoration(
-            color: isSelected ? Colors.red : tag.type.color,
-            border: Border.all(
-                color: isSelected ? Colors.red : tag.type.color,
-                width: isSelected ? 3 : 2),
-            borderRadius: BorderRadius.circular(16),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(tag.type.icon, color: Colors.white, size: 20),
-        ),
-      ),
-    );
-  }
-
   Widget _buildEditSidePanel() {
     return Container(
-      width: 220,
-      padding: const EdgeInsets.symmetric(vertical: 12.0),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1F2937),
-        border: Border.all(color: const Color(0xFF007AFF).withOpacity(0.7)),
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.4),
-            blurRadius: 8,
-            offset: const Offset(2, 2),
+      width: 200,
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      color: const Color(0xFF1F2937),
+      child: Column(
+        children: [
+          // Elements Section
+          _buildExpandableSection(
+            title: 'Elements',
+            isExpanded: _isElementsExpanded,
+            onToggle: () =>
+                setState(() => _isElementsExpanded = !_isElementsExpanded),
+            content: _isElementsExpanded
+                ? _buildElementsContent()
+                : const SizedBox(),
+          ),
+
+          // Measurements Section
+          _buildExpandableSection(
+            title: 'Measurements',
+            isExpanded: _isMeasurementsExpanded,
+            onToggle: () => setState(
+                () => _isMeasurementsExpanded = !_isMeasurementsExpanded),
+            content: _isMeasurementsExpanded
+                ? _buildMeasurementsContent()
+                : const SizedBox(),
+          ),
+
+          // Background Section
+          _buildExpandableSection(
+            title: 'Background',
+            isExpanded: _isBackgroundExpanded,
+            onToggle: () =>
+                setState(() => _isBackgroundExpanded = !_isBackgroundExpanded),
+            content: _isBackgroundExpanded
+                ? _buildBackgroundContent()
+                : const SizedBox(),
           ),
         ],
-      ),
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Elements Section
-            _buildExpandableSection(
-              title: 'Elements',
-              isExpanded: _isElementsExpanded,
-              onToggle: () =>
-                  setState(() => _isElementsExpanded = !_isElementsExpanded),
-              content: _isElementsExpanded
-                  ? _buildElementsContent()
-                  : const SizedBox(),
-            ),
-
-            // Measurements Section
-            _buildExpandableSection(
-              title: 'Measurements',
-              isExpanded: _isMeasurementsExpanded,
-              onToggle: () => setState(
-                  () => _isMeasurementsExpanded = !_isMeasurementsExpanded),
-              content: _isMeasurementsExpanded
-                  ? _buildMeasurementsContent()
-                  : const SizedBox(),
-            ),
-
-            // Background Section
-            _buildExpandableSection(
-              title: 'Background',
-              isExpanded: _isBackgroundExpanded,
-              onToggle: () => setState(
-                  () => _isBackgroundExpanded = !_isBackgroundExpanded),
-              content: _isBackgroundExpanded
-                  ? _buildBackgroundContent()
-                  : const SizedBox(),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -1127,18 +803,11 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
     required Widget content,
   }) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 6.0),
+      margin: const EdgeInsets.symmetric(vertical: 4.0),
       decoration: BoxDecoration(
         color: const Color(0xFF0B0C10),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF007AFF).withOpacity(0.5)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.3),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFF007AFF).withOpacity(0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1146,17 +815,9 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
           GestureDetector(
             onTap: onToggle,
             child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1F2937),
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(12)),
-                border: Border(
-                  bottom: BorderSide(
-                    color: const Color(0xFF007AFF).withOpacity(0.5),
-                    width: 1,
-                  ),
-                ),
+              padding: const EdgeInsets.all(12),
+              decoration: const BoxDecoration(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(8)),
               ),
               child: Row(
                 children: [
@@ -1165,14 +826,12 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
                     ),
                   ),
                   const Spacer(),
                   Icon(
                     isExpanded ? Icons.expand_less : Icons.expand_more,
-                    color: Colors.white,
-                    size: 24,
+                    color: Colors.grey,
                   ),
                 ],
               ),
@@ -1180,7 +839,7 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
           ),
           if (isExpanded)
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(12),
               child: content,
             ),
         ],
@@ -1247,15 +906,14 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
         _pendingElementType = type;
       }),
       icon: Icon(icon, size: 16, color: Colors.white),
-      label: Text(label, style: const TextStyle(fontSize: 11)),
+      label: Text(label, style: const TextStyle(fontSize: 12)),
       style: ElevatedButton.styleFrom(
         backgroundColor: color.withOpacity(0.7),
         foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(6),
         ),
-        minimumSize: const Size(0, 30),
       ),
     );
   }
@@ -1365,40 +1023,28 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            Expanded(
-              child: ElevatedButton(
-                onPressed: _importFloorPlan,
-                child: const Text('Import', style: TextStyle(fontSize: 12)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF007AFF),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                ),
+            ElevatedButton(
+              onPressed: _importFloorPlan,
+              child: const Text('Import', style: TextStyle(fontSize: 12)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF007AFF),
+                foregroundColor: Colors.white,
               ),
             ),
-            const SizedBox(width: 4),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: _replaceBackground,
-                child: const Text('Replace', style: TextStyle(fontSize: 12)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF9D4EDD),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                ),
+            ElevatedButton(
+              onPressed: _replaceBackground,
+              child: const Text('Replace', style: TextStyle(fontSize: 12)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF9D4EDD),
+                foregroundColor: Colors.white,
               ),
             ),
-            const SizedBox(width: 4),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: () =>
-                    setState(() => _backgroundManager.resetToGrid()),
-                child: const Text('Reset', style: TextStyle(fontSize: 12)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                ),
+            ElevatedButton(
+              onPressed: () => setState(() => _backgroundManager.resetToGrid()),
+              child: const Text('Reset', style: TextStyle(fontSize: 12)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
               ),
             ),
           ],
@@ -1478,6 +1124,284 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
     }
   }
 
+  // Improve the build methods for better visualization
+  Widget _buildZone(MapZone zone) {
+    final isSelected = _selectedElement == zone;
+    return Positioned(
+      left: zone.x,
+      top: zone.y,
+      child: GestureDetector(
+        onTap: _isEditMode
+            ? () {
+                if (_drawingMode == DrawingMode.distance) {
+                  _handleDistanceLineMeasurement(zone);
+                } else {
+                  setState(() => _selectedElement = zone);
+                }
+              }
+            : null,
+        onDoubleTap: _isEditMode ? () => _editZone(zone) : null,
+        onPanUpdate: _isEditMode && _drawingMode != DrawingMode.distance
+            ? (details) => setState(() {
+                  zone.x += details.delta.dx;
+                  zone.y += details.delta.dy;
+                })
+            : null,
+        child: Container(
+          width: zone.width,
+          height: zone.height,
+          decoration: BoxDecoration(
+            color: zone.color.withOpacity(0.3),
+            border: Border.all(
+                color: isSelected ? Colors.red : zone.color,
+                width: isSelected ? 3 : 2),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Stack(
+            children: [
+              // Zone name in center
+              Center(
+                child: Text(
+                  zone.name,
+                  style: TextStyle(
+                    color: zone.color,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+              // Measurement badges - CLICKABLE TO EDIT!
+              if (_showMeasurements)
+                // Width badge (top) - EDITABLE
+                Positioned(
+                  top: 2,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: GestureDetector(
+                      onTap: _isEditMode
+                          ? () => _quickEditZoneDimension(zone, 'width')
+                          : null,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: _isEditMode
+                              ? Colors.blue.withOpacity(0.8)
+                              : Colors.black.withOpacity(0.6),
+                          borderRadius: BorderRadius.circular(4),
+                          border: _isEditMode
+                              ? Border.all(color: Colors.white, width: 1)
+                              : null,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (_isEditMode)
+                              const Icon(Icons.edit,
+                                  size: 10, color: Colors.white),
+                            if (_isEditMode) const SizedBox(width: 2),
+                            Text(
+                              _toRealSize(zone.width),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              if (_showMeasurements)
+                // Height badge (left side) - EDITABLE
+                Positioned(
+                  left: 2,
+                  top: 0,
+                  bottom: 0,
+                  child: Center(
+                    child: GestureDetector(
+                      onTap: _isEditMode
+                          ? () => _quickEditZoneDimension(zone, 'height')
+                          : null,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 2, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: _isEditMode
+                              ? Colors.blue.withOpacity(0.8)
+                              : Colors.black.withOpacity(0.6),
+                          borderRadius: BorderRadius.circular(4),
+                          border: _isEditMode
+                              ? Border.all(color: Colors.white, width: 1)
+                              : null,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (_isEditMode)
+                              const Icon(Icons.edit,
+                                  size: 10, color: Colors.white),
+                            if (_isEditMode) const SizedBox(width: 2),
+                            Text(
+                              _toRealSize(zone.height),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWall(MapWall wall) {
+    final isSelected = _selectedElement == wall;
+    // Calculate the position and dimensions based on the two points
+    final left = wall.x1 < wall.x2 ? wall.x1 : wall.x2;
+    final top = wall.y1 < wall.y2 ? wall.y1 : wall.y2;
+    final width = (wall.x2 - wall.x1).abs();
+    final height = 4.0; // Fixed height for wall visualization
+
+    return Positioned(
+      left: left,
+      top: top,
+      child: GestureDetector(
+        onTap:
+            _isEditMode ? () => setState(() => _selectedElement = wall) : null,
+        onDoubleTap: _isEditMode ? () => _editWall(wall) : null,
+        onPanUpdate: _isEditMode
+            ? (details) => setState(() {
+                  wall.x1 += details.delta.dx;
+                  wall.y1 += details.delta.dy;
+                  wall.x2 += details.delta.dx;
+                  wall.y2 += details.delta.dy;
+                })
+            : null,
+        child: Container(
+          width: width,
+          height: height,
+          decoration: BoxDecoration(
+            color: isSelected ? Colors.red : Colors.grey[700]!,
+            border: Border.all(
+                color: isSelected ? Colors.red : Colors.grey[700]!,
+                width: isSelected ? 3 : 2),
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDoor(MapDoor door) {
+    final isSelected = _selectedElement == door;
+    return Positioned(
+      left: door.x,
+      top: door.y,
+      child: GestureDetector(
+        onTap:
+            _isEditMode ? () => setState(() => _selectedElement = door) : null,
+        onDoubleTap: _isEditMode ? () => _editDoor(door) : null,
+        onPanUpdate: _isEditMode
+            ? (details) => setState(() {
+                  door.x += details.delta.dx;
+                  door.y += details.delta.dy;
+                })
+            : null,
+        child: Container(
+          width: 20,
+          height: 20,
+          decoration: BoxDecoration(
+            color: isSelected ? Colors.red : Colors.brown,
+            border: Border.all(
+                color: isSelected ? Colors.red : Colors.brown,
+                width: isSelected ? 3 : 2),
+            borderRadius: BorderRadius.circular(4),
+            shape: BoxShape.rectangle,
+          ),
+          child:
+              const Icon(Icons.door_front_door, color: Colors.white, size: 16),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAnchor(MapAnchor anchor) {
+    final isSelected = _selectedElement == anchor;
+    return Positioned(
+      left: anchor.x,
+      top: anchor.y,
+      child: GestureDetector(
+        onTap: _isEditMode
+            ? () => setState(() => _selectedElement = anchor)
+            : null,
+        onDoubleTap: _isEditMode ? () => _editAnchor(anchor) : null,
+        onPanUpdate: _isEditMode
+            ? (details) => setState(() {
+                  anchor.x += details.delta.dx;
+                  anchor.y += details.delta.dy;
+                })
+            : null,
+        child: Container(
+          width: 16,
+          height: 16,
+          decoration: BoxDecoration(
+            color: isSelected ? Colors.red : Colors.red,
+            border: Border.all(
+                color: isSelected ? Colors.red : Colors.red,
+                width: isSelected ? 3 : 2),
+            borderRadius: BorderRadius.circular(8),
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(Icons.router, color: Colors.white, size: 12),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTag(MapTag tag) {
+    final isSelected = _selectedElement == tag;
+    return Positioned(
+      left: tag.x,
+      top: tag.y,
+      child: GestureDetector(
+        onTap:
+            _isEditMode ? () => setState(() => _selectedElement = tag) : null,
+        onDoubleTap: _isEditMode ? () => _editTag(tag) : null,
+        onPanUpdate: _isEditMode
+            ? (details) => setState(() {
+                  tag.x += details.delta.dx;
+                  tag.y += details.delta.dy;
+                })
+            : null,
+        child: Container(
+          width: 20,
+          height: 20,
+          decoration: BoxDecoration(
+            color: isSelected ? Colors.red : tag.type.color,
+            border: Border.all(
+                color: isSelected ? Colors.red : tag.type.color,
+                width: isSelected ? 3 : 2),
+            borderRadius: BorderRadius.circular(10),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(tag.type.icon, color: Colors.white, size: 14),
+        ),
+      ),
+    );
+  }
+
   void _handleWallDrawing(Offset position) {
     if (_wallStartPoint == null) {
       setState(() {
@@ -1554,17 +1478,6 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
         _distanceLineStartZone = null;
       });
     }
-  }
-
-  double _calculateDistance(MapZone startZone, MapZone endZone) {
-    final startX = startZone.x + startZone.width / 2;
-    final startY = startZone.y + startZone.height / 2;
-    final endX = endZone.x + endZone.width / 2;
-    final endY = endZone.y + endZone.height / 2;
-    final distance = math.sqrt(
-        ((endX - startX) * (endX - startX) + (endY - startY) * (endY - startY))
-            .toDouble());
-    return distance * _mapScale; // Apply scale to get real distance
   }
 
   void _toggleBackgroundVisibility() {
@@ -1925,7 +1838,17 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
           TextButton(
             onPressed: () {
               setState(() {
-                door.name = nameController.text;
+                // Find the index of the door in the list
+                final index =
+                    _backgroundManager.currentFloor.doors.indexOf(door);
+                if (index != -1) {
+                  // Replace the door with a new instance with updated values
+                  _backgroundManager.currentFloor.doors[index] = MapDoor(
+                    name: nameController.text,
+                    x: door.x,
+                    y: door.y,
+                  );
+                }
               });
               Navigator.pop(context);
             },
@@ -1989,8 +1912,18 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
           TextButton(
             onPressed: () {
               setState(() {
-                anchor.id = idController.text;
-                anchor.name = nameController.text;
+                // Find the index of the anchor in the list
+                final index =
+                    _backgroundManager.currentFloor.anchors.indexOf(anchor);
+                if (index != -1) {
+                  // Replace the anchor with a new instance with updated values
+                  _backgroundManager.currentFloor.anchors[index] = MapAnchor(
+                    id: idController.text,
+                    name: nameController.text,
+                    x: anchor.x,
+                    y: anchor.y,
+                  );
+                }
               });
               Navigator.pop(context);
             },
@@ -2003,6 +1936,7 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
 
   void _editTag(MapTag tag) {
     final nameController = TextEditingController(text: tag.name);
+    TagType selectedType = tag.type;
 
     showDialog(
       context: context,
@@ -2034,7 +1968,7 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
             ),
             const SizedBox(height: 8),
             DropdownButton<TagType>(
-              value: tag.type,
+              value: selectedType,
               dropdownColor: const Color(0xFF1F2937),
               style: const TextStyle(color: Colors.white),
               items: TagType.values.map((type) {
@@ -2052,20 +1986,7 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
               onChanged: (value) {
                 if (value != null) {
                   setState(() {
-                    // Create a new tag with the updated type
-                    final index =
-                        _backgroundManager.currentFloor.tags.indexOf(tag);
-                    if (index != -1) {
-                      _backgroundManager.currentFloor.tags[index] = MapTag(
-                        id: tag.id,
-                        name: nameController.text,
-                        x: tag.x,
-                        y: tag.y,
-                        type: value,
-                      );
-                      _selectedElement =
-                          _backgroundManager.currentFloor.tags[index];
-                    }
+                    selectedType = value;
                   });
                 }
               },
@@ -2080,18 +2001,17 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
           TextButton(
             onPressed: () {
               setState(() {
-                // Update the tag name
+                // Find the index of the tag in the list
                 final index = _backgroundManager.currentFloor.tags.indexOf(tag);
                 if (index != -1) {
+                  // Replace the tag with a new instance with updated values
                   _backgroundManager.currentFloor.tags[index] = MapTag(
                     id: tag.id,
                     name: nameController.text,
                     x: tag.x,
                     y: tag.y,
-                    type: tag.type,
+                    type: selectedType,
                   );
-                  _selectedElement =
-                      _backgroundManager.currentFloor.tags[index];
                 }
               });
               Navigator.pop(context);
@@ -2101,6 +2021,105 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
         ],
       ),
     );
+  }
+
+  // Add the missing methods that were cut off in the corrupted file
+  double _calculateDistance(MapZone startZone, MapZone endZone) {
+    final startX = startZone.x + startZone.width / 2;
+    final startY = startZone.y + startZone.height / 2;
+    final endX = endZone.x + endZone.width / 2;
+    final endY = endZone.y + endZone.height / 2;
+    final distance = math.sqrt(
+        ((endX - startX) * (endX - startX) + (endY - startY) * (endY - startY))
+            .toDouble());
+    return distance * _mapScale; // Apply scale to get real distance
+  }
+
+  Widget _buildDistanceLine(MapDistanceLine line) {
+    final isSelected = _selectedElement == line;
+    final startPoint = line.startPoint;
+    final endPoint = line.endPoint;
+
+    // Calculate angle and length for the line
+    final dx = endPoint.dx - startPoint.dx;
+    final dy = endPoint.dy - startPoint.dy;
+    final length = math.sqrt(dx * dx + dy * dy);
+    final angle = math.atan2(dy, dx);
+
+    // Calculate real distance
+    final realDistance = length * _mapScale;
+    final distanceText = _formatDistance(realDistance);
+
+    return Positioned(
+      left: startPoint.dx,
+      top: startPoint.dy,
+      child: Transform.rotate(
+        angle: angle,
+        child: GestureDetector(
+          onTap: _isEditMode
+              ? () => setState(() => _selectedElement = line)
+              : null,
+          onDoubleTap: _isEditMode ? () => _editDistanceLine(line) : null,
+          child: Container(
+            width: length,
+            height: 20,
+            color: Colors.transparent,
+            child: Stack(
+              children: [
+                // Line
+                Positioned(
+                  left: 0,
+                  top: 10,
+                  child: Container(
+                    width: length,
+                    height: isSelected ? 3 : 2,
+                    decoration: BoxDecoration(
+                      color: isSelected ? Colors.red : Colors.yellow.shade700,
+                      borderRadius: BorderRadius.circular(1),
+                    ),
+                  ),
+                ),
+                // Distance label
+                if (_showMeasurements)
+                  Positioned(
+                    left: length / 2 - 30,
+                    top: 0,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 4, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.7),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        distanceText,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _formatDistance(double meters) {
+    switch (_measurementUnit) {
+      case 'meter':
+        return '${meters.toStringAsFixed(2)} m';
+      case 'cm':
+        return '${(meters * 100).toStringAsFixed(0)} cm';
+      case 'feet':
+        return '${(meters * 3.28084).toStringAsFixed(2)} ft';
+      default:
+        return '${meters.toStringAsFixed(2)} m';
+    }
   }
 
   void _editDistanceLine(MapDistanceLine line) {
@@ -2159,19 +2178,6 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
     );
   }
 
-  String _formatDistance(double meters) {
-    switch (_measurementUnit) {
-      case 'meter':
-        return '${meters.toStringAsFixed(2)} m';
-      case 'cm':
-        return '${(meters * 100).toStringAsFixed(0)} cm';
-      case 'feet':
-        return '${(meters * 3.28084).toStringAsFixed(2)} ft';
-      default:
-        return '${meters.toStringAsFixed(2)} m';
-    }
-  }
-
   String _toRealSize(double pixels) {
     // Convert pixels to real size based on map scale
     return '${(pixels * _mapScale).toStringAsFixed(2)} $_measurementUnit';
@@ -2179,18 +2185,11 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
 
   Widget _buildLegend() {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: const Color(0xFF1F2937),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF007AFF).withOpacity(0.7)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.4),
-            blurRadius: 6,
-            offset: const Offset(3, 3),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFF007AFF).withOpacity(0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2198,227 +2197,82 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
           const Text(
             'Legend',
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 12,
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Row(
             children: [
               Container(
-                width: 16,
-                height: 16,
+                width: 10,
+                height: 10,
                 decoration: BoxDecoration(
                   color: Colors.blue,
                   shape: BoxShape.circle,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               const Text(
                 'Zone',
-                style: TextStyle(color: Colors.white, fontSize: 14),
+                style: TextStyle(color: Colors.white, fontSize: 10),
               ),
             ],
           ),
-          const SizedBox(height: 8),
           Row(
             children: [
               Container(
-                width: 60,
-                height: 8,
+                width: 50,
+                height: 2,
                 decoration: BoxDecoration(
                   color: Colors.grey,
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(1),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               const Text(
                 'Wall',
-                style: TextStyle(color: Colors.white, fontSize: 14),
+                style: TextStyle(color: Colors.white, fontSize: 10),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const Icon(Icons.door_front_door, color: Colors.brown, size: 20),
-              const SizedBox(width: 12),
-              const Text(
-                'Door',
-                style: TextStyle(color: Colors.white, fontSize: 14),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const Icon(Icons.router, color: Colors.red, size: 20),
-              const SizedBox(width: 12),
-              const Text(
-                'Anchor',
-                style: TextStyle(color: Colors.white, fontSize: 14),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
           Row(
             children: [
               Container(
-                width: 20,
-                height: 20,
-                decoration: const BoxDecoration(
-                  color: Colors.green,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.local_offer,
-                    color: Colors.white, size: 16),
-              ),
-              const SizedBox(width: 12),
-              const Text(
-                'Tag',
-                style: TextStyle(color: Colors.white, fontSize: 14),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Container(
-                width: 60,
-                height: 4,
+                width: 5,
+                height: 5,
                 decoration: BoxDecoration(
-                  color: Colors.yellow,
+                  color: Colors.brown,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               const Text(
-                'Distance Line',
-                style: TextStyle(color: Colors.white, fontSize: 14),
+                'Door',
+                style: TextStyle(color: Colors.white, fontSize: 10),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              Container(
+                width: 5,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: Colors.red,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                'Anchor',
+                style: TextStyle(color: Colors.white, fontSize: 10),
               ),
             ],
           ),
         ],
       ),
-    );
-  }
-}
-
-// New dialog for flexible map creation
-class _FlexibleMapCreationDialog extends StatefulWidget {
-  final Function(String, double, String) onCreate;
-
-  const _FlexibleMapCreationDialog({required this.onCreate});
-
-  @override
-  State<_FlexibleMapCreationDialog> createState() =>
-      _FlexibleMapCreationDialogState();
-}
-
-class _FlexibleMapCreationDialogState
-    extends State<_FlexibleMapCreationDialog> {
-  final _floorNameController = TextEditingController(text: 'Floor 1');
-  final _scaleController = TextEditingController(text: '0.025');
-  String _selectedUnit = 'meter';
-
-  @override
-  void dispose() {
-    _floorNameController.dispose();
-    _scaleController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: const Color(0xFF1F2937),
-      title:
-          const Text('Create New Map', style: TextStyle(color: Colors.white)),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Floor Name',
-              style: TextStyle(color: Colors.grey, fontSize: 12),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _floorNameController,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                labelText: 'e.g., Floor 1, Hall A, Basement',
-                labelStyle: TextStyle(color: Colors.grey),
-                hintText: 'Enter floor name',
-                hintStyle: TextStyle(color: Colors.grey),
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Map Scale (1 pixel = ? meters)',
-              style: TextStyle(color: Colors.grey, fontSize: 12),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _scaleController,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                labelText: 'Scale (e.g., 0.025)',
-                labelStyle: TextStyle(color: Colors.grey),
-                hintText: '0.025',
-                hintStyle: TextStyle(color: Colors.grey),
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Measurement Unit',
-              style: TextStyle(color: Colors.grey, fontSize: 12),
-            ),
-            const SizedBox(height: 8),
-            DropdownButton<String>(
-              value: _selectedUnit,
-              dropdownColor: const Color(0xFF1F2937),
-              style: const TextStyle(color: Colors.white),
-              items: const [
-                DropdownMenuItem(value: 'meter', child: Text('Meters (m)')),
-                DropdownMenuItem(value: 'cm', child: Text('Centimeters (cm)')),
-                DropdownMenuItem(value: 'feet', child: Text('Feet (ft)')),
-              ],
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    _selectedUnit = value;
-                  });
-                }
-              },
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        TextButton(
-          onPressed: () {
-            final scale = double.tryParse(_scaleController.text) ?? 0.025;
-            widget.onCreate(
-              _floorNameController.text.isEmpty
-                  ? 'Floor 1'
-                  : _floorNameController.text,
-              scale,
-              _selectedUnit,
-            );
-            Navigator.pop(context);
-          },
-          child: const Text('Create'),
-        ),
-      ],
     );
   }
 }

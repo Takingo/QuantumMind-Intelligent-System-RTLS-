@@ -6,8 +6,19 @@ import 'access_logs_screen.dart';
 import 'advanced_rtls_map_screen.dart';
 
 /// Premium Dashboard Screen
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  // Expansion state for each card
+  bool _isTagsExpanded = false;
+  bool _isDoorsExpanded = false;
+  bool _isSensorsExpanded = false;
+  bool _isAlertsExpanded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +49,12 @@ class DashboardScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            const Text('Quantum Mind UWB Intelligent System'),
+            const Expanded(
+              child: Text(
+                'Quantum Mind UWB Intelligent System',
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
         ),
         actions: [
@@ -56,7 +72,7 @@ class DashboardScreen extends StatelessWidget {
         ],
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
+        child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -86,112 +102,276 @@ class DashboardScreen extends StatelessWidget {
 
               const SizedBox(height: 32),
 
-              // Stats Grid
-              GridView.count(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisCount: 2,
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 16,
-                childAspectRatio: 1.3,
-                children: [
-                  _buildStatCard(
-                    'Active Tags',
-                    '24',
-                    Icons.sensors,
-                    const Color(0xFF00FFC6),
-                  ),
-                  _buildStatCard(
-                    'Doors',
-                    '8',
-                    Icons.door_front_door,
-                    const Color(0xFF007AFF),
-                  ),
-                  _buildStatCard(
-                    'Sensors',
-                    '12',
-                    Icons.thermostat,
-                    const Color(0xFF9D4EDD),
-                  ),
-                  _buildStatCard(
-                    'Alerts',
-                    '0',
-                    Icons.warning,
-                    const Color(0xFFF59E0B),
-                  ),
-                ],
+              // Main Content Area - RTLS Map and Stats
+              Expanded(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Left - RTLS Map (Large Area)
+                    Expanded(
+                      flex: 3,
+                      child: Container(
+                        margin: const EdgeInsets.only(right: 16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1F2937),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: const Color(0xFF007AFF).withOpacity(0.3),
+                          ),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Stack(
+                            children: [
+                              // Placeholder for RTLS Map
+                              Container(
+                                color: const Color(0xFF0B0C10),
+                                child: const Center(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.map,
+                                        size: 64,
+                                        color: Color(0xFF007AFF),
+                                      ),
+                                      SizedBox(height: 16),
+                                      Text(
+                                        'RTLS Live Map',
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      SizedBox(height: 8),
+                                      Text(
+                                        'Real-time location tracking and visualization',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              // Map Legend
+                              Positioned(
+                                top: 16,
+                                right: 16,
+                                child: Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF0B0C10)
+                                        .withOpacity(0.9),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Container(
+                                            width: 12,
+                                            height: 12,
+                                            decoration: const BoxDecoration(
+                                              color: Color(0xFF00FFC6),
+                                              shape: BoxShape.circle,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          const Text(
+                                            'Active Tags',
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 12),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Container(
+                                            width: 12,
+                                            height: 12,
+                                            decoration: const BoxDecoration(
+                                              color: Color(0xFF007AFF),
+                                              shape: BoxShape.circle,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          const Text(
+                                            'Doors',
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 12),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // Right - Stats Cards (Compact)
+                    SizedBox(
+                      width: 250,
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            _buildExpandableStatCard(
+                              'Active Tags',
+                              '24',
+                              Icons.sensors,
+                              const Color(0xFF00FFC6),
+                              _isTagsExpanded,
+                              () => setState(() {
+                                _isTagsExpanded = !_isTagsExpanded;
+                                // Close other cards when one opens
+                                _isDoorsExpanded = false;
+                                _isSensorsExpanded = false;
+                                _isAlertsExpanded = false;
+                              }),
+                            ),
+                            const SizedBox(height: 12),
+                            _buildExpandableStatCard(
+                              'Doors',
+                              '8',
+                              Icons.door_front_door,
+                              const Color(0xFF007AFF),
+                              _isDoorsExpanded,
+                              () => setState(() {
+                                _isDoorsExpanded = !_isDoorsExpanded;
+                                // Close other cards when one opens
+                                _isTagsExpanded = false;
+                                _isSensorsExpanded = false;
+                                _isAlertsExpanded = false;
+                              }),
+                            ),
+                            const SizedBox(height: 12),
+                            _buildExpandableStatCard(
+                              'Sensors',
+                              '12',
+                              Icons.thermostat,
+                              const Color(0xFF9D4EDD),
+                              _isSensorsExpanded,
+                              () => setState(() {
+                                _isSensorsExpanded = !_isSensorsExpanded;
+                                // Close other cards when one opens
+                                _isTagsExpanded = false;
+                                _isDoorsExpanded = false;
+                                _isAlertsExpanded = false;
+                              }),
+                            ),
+                            const SizedBox(height: 12),
+                            _buildExpandableStatCard(
+                              'Alerts',
+                              '0',
+                              Icons.warning,
+                              const Color(0xFFF59E0B),
+                              _isAlertsExpanded,
+                              () => setState(() {
+                                _isAlertsExpanded = !_isAlertsExpanded;
+                                // Close other cards when one opens
+                                _isTagsExpanded = false;
+                                _isDoorsExpanded = false;
+                                _isSensorsExpanded = false;
+                              }),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
 
               const SizedBox(height: 32),
 
-              // Quick Actions
+              // Quick Actions - Scrollable at Bottom
               const Text(
                 'Quick Actions',
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
 
-              Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: [
-                  _buildActionButton(
-                    context,
-                    'Access Logs',
-                    Icons.list_alt,
-                    () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const AccessLogsScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  _buildActionButton(
-                    context,
-                    'RTLS Map',
-                    Icons.map,
-                    () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const AdvancedRtlsMapScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  _buildActionButton(
-                    context,
-                    'Sensors',
-                    Icons.thermostat,
-                    () {
-                      // TODO: Navigate to Sensors
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Sensors screen coming soon...'),
-                        ),
-                      );
-                    },
-                  ),
-                  _buildActionButton(
-                    context,
-                    'Settings',
-                    Icons.settings,
-                    () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const SettingsScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                ],
+              // Scrollable Quick Actions (smaller and more modern)
+              SizedBox(
+                height: 60,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  children: [
+                    _buildActionButton(
+                      context,
+                      'Access Logs',
+                      Icons.list_alt,
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const AccessLogsScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(width: 10),
+                    _buildActionButton(
+                      context,
+                      'RTLS Map',
+                      Icons.map,
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const AdvancedRtlsMapScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(width: 10),
+                    _buildActionButton(
+                      context,
+                      'Sensors',
+                      Icons.thermostat,
+                      () {
+                        // TODO: Navigate to Sensors
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Sensors screen coming soon...'),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(width: 10),
+                    _buildActionButton(
+                      context,
+                      'Settings',
+                      Icons.settings,
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const SettingsScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -254,6 +434,93 @@ class DashboardScreen extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildExpandableStatCard(String title, String value, IconData icon,
+      Color color, bool isExpanded, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFF1F2937),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: color.withOpacity(0.5),
+            width: 1,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(12)),
+              ),
+              child: Row(
+                children: [
+                  Icon(icon, color: color, size: 24),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '$title: $value',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  Icon(
+                    isExpanded ? Icons.expand_less : Icons.expand_more,
+                    color: Colors.grey,
+                    size: 20,
+                  ),
+                ],
+              ),
+            ),
+            // Expanded Content (when expanded)
+            if (isExpanded)
+              Container(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Detailed information about $title',
+                      style: const TextStyle(
+                        color: Colors.grey,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    // Add more detailed content here as needed
+                    const Text(
+                      'Status: Operational',
+                      style: TextStyle(
+                        color: Colors.green,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Last Updated: Just now',
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
