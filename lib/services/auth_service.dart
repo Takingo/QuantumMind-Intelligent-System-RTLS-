@@ -40,7 +40,7 @@ class AuthService {
     required String email,
     required String password,
     required String name,
-    String role = 'User',
+    String role = 'employee',
   }) async {
     try {
       // Create auth user
@@ -48,7 +48,7 @@ class AuthService {
         email: email,
         password: password,
         data: {
-          'name': name,
+          'full_name': name,
           'role': role,
         },
       );
@@ -57,14 +57,14 @@ class AuthService {
         throw Exception('Failed to create user');
       }
 
-      // Create user record in database
+      // Create user record in profiles table
       final userData = {
         'id': authResponse.user!.id,
-        'name': name,
-        'email': email,
+        'username': email,
+        'full_name': name,
         'role': role,
         'created_at': DateTime.now().toIso8601String(),
-        'is_active': true,
+        'updated_at': DateTime.now().toIso8601String(),
       };
 
       await _supabaseService.insert(AppConstants.tableUsers, userData);
@@ -86,11 +86,11 @@ class AuthService {
       // Return demo user without Supabase authentication
       return UserModel(
         id: 'demo-user-id-12345',
-        name: 'Demo User',
-        email: 'test@1.com',
-        role: AppConstants.roleAdmin,
-        isActive: true,
+        username: 'test@1.com',
+        fullName: 'Demo User',
+        role: 'admin',
         createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
     }
     // ================================================

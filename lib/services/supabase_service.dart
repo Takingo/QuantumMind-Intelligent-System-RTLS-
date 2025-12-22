@@ -1,4 +1,4 @@
-import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../utils/constants.dart';
 
@@ -6,15 +6,15 @@ import '../utils/constants.dart';
 class SupabaseService {
   static SupabaseService? _instance;
   static SupabaseClient? _client;
-  
+
   SupabaseService._();
-  
+
   /// Get singleton instance
   static SupabaseService get instance {
     _instance ??= SupabaseService._();
     return _instance!;
   }
-  
+
   /// Get Supabase client
   SupabaseClient get client {
     if (_client == null) {
@@ -22,7 +22,7 @@ class SupabaseService {
     }
     return _client!;
   }
-  
+
   /// Initialize Supabase
   static Future<void> initialize() async {
     await Supabase.initialize(
@@ -34,12 +34,61 @@ class SupabaseService {
     );
     _client = Supabase.instance.client;
   }
-  
+
   /// Check if initialized
   bool get isInitialized => _client != null;
-  
+
+  /// Authorize a new tag
+  Future<bool> authorizeTag(String tagId, String accessLevel) async {
+    try {
+      // Update the tag's access level in the tags table
+      await client
+          .from('tags')
+          .update({'access_level': accessLevel}).eq('id', tagId);
+
+      return true;
+    } catch (e) {
+      debugPrint('Error authorizing tag: $e');
+      return false;
+    }
+  }
+
+  /// Block a tag until authorized
+  Future<bool> blockTag(String tagId) async {
+    try {
+      // Set access level to 'blocked' in the tags table
+      await client
+          .from('tags')
+          .update({'access_level': 'blocked'}).eq('id', tagId);
+
+      return true;
+    } catch (e) {
+      debugPrint('Error blocking tag: $e');
+      return false;
+    }
+  }
+
+  /// Check if a tag is authorized
+  Future<bool> isTagAuthorized(String tagId) async {
+    try {
+      final response = await client
+          .from('tags')
+          .select('access_level')
+          .eq('id', tagId)
+          .maybeSingle();
+
+      if (response == null) return false;
+
+      final accessLevel = response['access_level'] as String?;
+      return accessLevel != null && accessLevel != 'blocked';
+    } catch (e) {
+      debugPrint('Error checking tag authorization: $e');
+      return false;
+    }
+  }
+
   // ========== Database Operations ==========
-  
+
   /// Get all records from a table
   Future<List<Map<String, dynamic>>> getAll(String table) async {
     try {
@@ -49,21 +98,18 @@ class SupabaseService {
       throw Exception('Failed to fetch data from $table: $e');
     }
   }
-  
+
   /// Get record by ID
   Future<Map<String, dynamic>?> getById(String table, String id) async {
     try {
-      final response = await client
-          .from(table)
-          .select()
-          .eq('id', id)
-          .maybeSingle();
+      final response =
+          await client.from(table).select().eq('id', id).maybeSingle();
       return response;
     } catch (e) {
       throw Exception('Failed to fetch record from $table: $e');
     }
   }
-  
+
   /// Get records with filter
   Future<List<Map<String, dynamic>>> getWhere(
     String table,
@@ -71,33 +117,26 @@ class SupabaseService {
     dynamic value,
   ) async {
     try {
-      final response = await client
-          .from(table)
-          .select()
-          .eq(column, value);
+      final response = await client.from(table).select().eq(column, value);
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
       throw Exception('Failed to fetch filtered data from $table: $e');
     }
   }
-  
+
   /// Insert record
   Future<Map<String, dynamic>> insert(
     String table,
     Map<String, dynamic> data,
   ) async {
     try {
-      final response = await client
-          .from(table)
-          .insert(data)
-          .select()
-          .single();
+      final response = await client.from(table).insert(data).select().single();
       return response;
     } catch (e) {
       throw Exception('Failed to insert data into $table: $e');
     }
   }
-  
+
   /// Update record
   Future<Map<String, dynamic>> update(
     String table,
@@ -105,32 +144,25 @@ class SupabaseService {
     Map<String, dynamic> data,
   ) async {
     try {
-      final response = await client
-          .from(table)
-          .update(data)
-          .eq('id', id)
-          .select()
-          .single();
+      final response =
+          await client.from(table).update(data).eq('id', id).select().single();
       return response;
     } catch (e) {
       throw Exception('Failed to update data in $table: $e');
     }
   }
-  
+
   /// Delete record
   Future<void> delete(String table, String id) async {
     try {
-      await client
-          .from(table)
-          .delete()
-          .eq('id', id);
+      await client.from(table).delete().eq('id', id);
     } catch (e) {
       throw Exception('Failed to delete data from $table: $e');
     }
   }
-  
+
   // ========== Realtime Subscriptions ==========
-  
+
   /// Subscribe to table changes
   RealtimeChannel subscribeToTable(
     String table,
@@ -145,10 +177,10 @@ class SupabaseService {
           callback: callback,
         )
         .subscribe();
-    
+
     return channel;
   }
-  
+
   /// Subscribe to specific channel
   RealtimeChannel subscribeToChannel(
     String channelName,
@@ -161,17 +193,17 @@ class SupabaseService {
           callback: (payload) => callback(payload),
         )
         .subscribe();
-    
+
     return channel;
   }
-  
+
   /// Unsubscribe from channel
   Future<void> unsubscribe(RealtimeChannel channel) async {
     await client.removeChannel(channel);
   }
-  
+
   // ========== Storage Operations ==========
-  
+
   /// Upload file
   Future<String> uploadFile(
     String bucket,
@@ -182,43 +214,37 @@ class SupabaseService {
       await client.storage
           .from(bucket)
           .uploadBinary(path, Uint8List.fromList(fileBytes));
-      
-      final publicUrl = client.storage
-          .from(bucket)
-          .getPublicUrl(path);
-      
+
+      final publicUrl = client.storage.from(bucket).getPublicUrl(path);
+
       return publicUrl;
     } catch (e) {
       throw Exception('Failed to upload file: $e');
     }
   }
-  
+
   /// Download file
   Future<List<int>> downloadFile(String bucket, String path) async {
     try {
-      final response = await client.storage
-          .from(bucket)
-          .download(path);
-      
+      final response = await client.storage.from(bucket).download(path);
+
       return response;
     } catch (e) {
       throw Exception('Failed to download file: $e');
     }
   }
-  
+
   /// Delete file
   Future<void> deleteFile(String bucket, String path) async {
     try {
-      await client.storage
-          .from(bucket)
-          .remove([path]);
+      await client.storage.from(bucket).remove([path]);
     } catch (e) {
       throw Exception('Failed to delete file: $e');
     }
   }
-  
+
   // ========== RPC Functions ==========
-  
+
   /// Call remote procedure
   Future<dynamic> callFunction(
     String functionName,

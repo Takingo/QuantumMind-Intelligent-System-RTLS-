@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'dart:typed_data';
-import 'dart:ui';
 
 /// Base class for map elements
 abstract class MapElement {}
 
 /// Map Zone element
 class MapZone extends MapElement {
+  String id; // Unique zone ID for linking devices
   String name;
   double x;
   double y;
@@ -15,13 +15,14 @@ class MapZone extends MapElement {
   Color color;
 
   MapZone({
+    String? id,
     required this.name,
     required this.x,
     required this.y,
     required this.width,
     required this.height,
     required this.color,
-  });
+  }) : id = id ?? UniqueKey().toString();
 }
 
 /// Map Wall element
@@ -44,26 +45,36 @@ class MapDoor extends MapElement {
   String name;
   double x;
   double y;
+  String? zoneId; // Optional: linked zone
+  String? deviceId; // Optional: controller/board ID
+  String? macAddress; // Optional: MAC address
 
   MapDoor({
     required this.name,
     required this.x,
     required this.y,
+    this.zoneId,
+    this.deviceId,
+    this.macAddress,
   });
 }
 
 /// Map Anchor element
 class MapAnchor extends MapElement {
-  String id;
+  String id; // Anchor device ID (match ESP32/UWB board)
   String name;
   double x;
   double y;
+  String? zoneId; // Optional: linked zone
+  String? deviceId; // Optional: hardware/tag ID for ESP32
 
   MapAnchor({
     required this.id,
     required this.name,
     required this.x,
     required this.y,
+    this.zoneId,
+    this.deviceId,
   });
 }
 
@@ -74,6 +85,9 @@ class MapTag extends MapElement {
   double x;
   double y;
   final TagType type;
+  bool isActive;
+  String? zoneId; // Optional: linked zone
+  String? deviceId; // Optional: hardware/tag ID for ESP32
 
   MapTag({
     required this.id,
@@ -81,6 +95,9 @@ class MapTag extends MapElement {
     required this.x,
     required this.y,
     required this.type,
+    this.isActive = true,
+    this.zoneId,
+    this.deviceId,
   });
 }
 
@@ -161,13 +178,13 @@ class MapFloor {
     this.backgroundImagePath,
     this.backgroundScale = 1.0,
     Offset? backgroundPosition,
-  })  : this.zones = zones ?? [],
-        this.walls = walls ?? [],
-        this.doors = doors ?? [],
-        this.anchors = anchors ?? [],
-        this.tags = tags ?? [],
-        this.distanceLines = distanceLines ?? [],
-        this.backgroundPosition = backgroundPosition ?? Offset.zero;
+  })  : zones = zones ?? [],
+        walls = walls ?? [],
+        doors = doors ?? [],
+        anchors = anchors ?? [],
+        tags = tags ?? [],
+        distanceLines = distanceLines ?? [],
+        backgroundPosition = backgroundPosition ?? Offset.zero;
 
   /// Create a copy of this floor
   MapFloor copy() {
@@ -175,53 +192,73 @@ class MapFloor {
       id: id,
       name: name,
       zones: zones
-          .map((zone) => MapZone(
-                name: zone.name,
-                x: zone.x,
-                y: zone.y,
-                width: zone.width,
-                height: zone.height,
-                color: zone.color,
-              ))
+          .map(
+            (zone) => MapZone(
+              id: zone.id,
+              name: zone.name,
+              x: zone.x,
+              y: zone.y,
+              width: zone.width,
+              height: zone.height,
+              color: zone.color,
+            ),
+          )
           .toList(),
       walls: walls
-          .map((wall) => MapWall(
-                x1: wall.x1,
-                y1: wall.y1,
-                x2: wall.x2,
-                y2: wall.y2,
-              ))
+          .map(
+            (wall) => MapWall(
+              x1: wall.x1,
+              y1: wall.y1,
+              x2: wall.x2,
+              y2: wall.y2,
+            ),
+          )
           .toList(),
       doors: doors
-          .map((door) => MapDoor(
-                name: door.name,
-                x: door.x,
-                y: door.y,
-              ))
+          .map(
+            (door) => MapDoor(
+              name: door.name,
+              x: door.x,
+              y: door.y,
+              zoneId: door.zoneId,
+              deviceId: door.deviceId,
+              macAddress: door.macAddress,
+            ),
+          )
           .toList(),
       anchors: anchors
-          .map((anchor) => MapAnchor(
-                id: anchor.id,
-                name: anchor.name,
-                x: anchor.x,
-                y: anchor.y,
-              ))
+          .map(
+            (anchor) => MapAnchor(
+              id: anchor.id,
+              name: anchor.name,
+              x: anchor.x,
+              y: anchor.y,
+              zoneId: anchor.zoneId,
+            ),
+          )
           .toList(),
       tags: tags
-          .map((tag) => MapTag(
-                id: tag.id,
-                name: tag.name,
-                x: tag.x,
-                y: tag.y,
-                type: tag.type,
-              ))
+          .map(
+            (tag) => MapTag(
+              id: tag.id,
+              name: tag.name,
+              x: tag.x,
+              y: tag.y,
+              type: tag.type,
+              isActive: tag.isActive,
+              zoneId: tag.zoneId,
+              deviceId: tag.deviceId,
+            ),
+          )
           .toList(),
       distanceLines: distanceLines
-          .map((line) => MapDistanceLine(
-                startZone: line.startZone,
-                endZone: line.endZone,
-                label: line.label,
-              ))
+          .map(
+            (line) => MapDistanceLine(
+              startZone: line.startZone,
+              endZone: line.endZone,
+              label: line.label,
+            ),
+          )
           .toList(),
       backgroundImageBytes: backgroundImageBytes,
       isManualGrid: isManualGrid,

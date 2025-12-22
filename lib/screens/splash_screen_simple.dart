@@ -13,7 +13,7 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> {
   double _opacity = 0.0;
   double _scale = 0.8;
-  bool _isLoading = true;
+  final bool _isLoading = true;
 
   @override
   void initState() {

@@ -1,5 +1,11 @@
 include: package:flutter_lints/flutter.yaml
 
+analyzer:
+  exclude:
+    - flutter/packages/flutter_tools/test/**
+    - flutter/bin/cache/**
+    - flutter/examples/**
+    - flutter/packages/flutter_tools/test/widget_preview_scaffold.shard/**
 linter:
   rules:
     - prefer_const_constructors

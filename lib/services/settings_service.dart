@@ -77,7 +77,7 @@ class SettingsService {
 
       // Save backup timestamp
       await _prefs?.setInt(
-          'last_backup_timestamp', DateTime.now().millisecondsSinceEpoch);
+          'last_backup_timestamp', DateTime.now().millisecondsSinceEpoch,);
 
       debugPrint('Backup completed successfully at ${DateTime.now()}');
       return true;

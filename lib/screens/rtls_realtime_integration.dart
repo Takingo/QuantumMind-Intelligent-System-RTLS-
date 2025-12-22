@@ -220,13 +220,13 @@ class _CalibrationOverlayState extends State<CalibrationOverlay> {
                     ),
                     const SizedBox(width: 8),
                     const Text('Point 1:',
-                        style: TextStyle(color: Colors.white)),
+                        style: TextStyle(color: Colors.white),),
                     const SizedBox(width: 12),
                     Expanded(
                       child: TextField(
                         controller: _x1Controller,
                         keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true),
+                            decimal: true,),
                         style: const TextStyle(color: Colors.white),
                         decoration: const InputDecoration(
                           labelText: 'X (m)',
@@ -241,7 +241,7 @@ class _CalibrationOverlayState extends State<CalibrationOverlay> {
                       child: TextField(
                         controller: _y1Controller,
                         keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true),
+                            decimal: true,),
                         style: const TextStyle(color: Colors.white),
                         decoration: const InputDecoration(
                           labelText: 'Y (m)',
@@ -268,13 +268,13 @@ class _CalibrationOverlayState extends State<CalibrationOverlay> {
                     ),
                     const SizedBox(width: 8),
                     const Text('Point 2:',
-                        style: TextStyle(color: Colors.white)),
+                        style: TextStyle(color: Colors.white),),
                     const SizedBox(width: 12),
                     Expanded(
                       child: TextField(
                         controller: _x2Controller,
                         keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true),
+                            decimal: true,),
                         style: const TextStyle(color: Colors.white),
                         decoration: const InputDecoration(
                           labelText: 'X (m)',
@@ -289,7 +289,7 @@ class _CalibrationOverlayState extends State<CalibrationOverlay> {
                       child: TextField(
                         controller: _y2Controller,
                         keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true),
+                            decimal: true,),
                         style: const TextStyle(color: Colors.white),
                         decoration: const InputDecoration(
                           labelText: 'Y (m)',

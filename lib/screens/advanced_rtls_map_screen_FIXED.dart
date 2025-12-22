@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/material.dart';
 import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -19,7 +18,7 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
   final List<MapTag> _tags = [
     MapTag(id: '001', name: 'Worker-1', x: 150, y: 200, type: TagType.worker),
     MapTag(
-        id: '002', name: 'Forklift-1', x: 300, y: 350, type: TagType.vehicle),
+        id: '002', name: 'Forklift-1', x: 300, y: 350, type: TagType.vehicle,),
   ];
 
   final List<MapZone> _zones = [
@@ -29,14 +28,14 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
         y: 100,
         width: 200,
         height: 150,
-        color: Colors.blue),
+        color: Colors.blue,),
     MapZone(
         name: 'Warehouse',
         x: 350,
         y: 250,
         width: 250,
         height: 200,
-        color: Colors.green),
+        color: Colors.green,),
   ];
 
   final List<MapWall> _walls = [];
@@ -72,9 +71,9 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
         title: const Text('Advanced RTLS Map'),
         actions: [
           IconButton(
-              icon: const Icon(Icons.upload_file), onPressed: _importFloorPlan),
+              icon: const Icon(Icons.upload_file), onPressed: _importFloorPlan,),
           IconButton(
-              icon: const Icon(Icons.picture_as_pdf), onPressed: _exportToPdf),
+              icon: const Icon(Icons.picture_as_pdf), onPressed: _exportToPdf,),
           IconButton(
             icon: Icon(_isEditMode ? Icons.check : Icons.edit),
             onPressed: () => setState(() {
@@ -119,17 +118,17 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
                           if (_floorPlanBytes != null)
                             Positioned.fill(
                                 child: Image.memory(_floorPlanBytes!,
-                                    fit: BoxFit.contain))
+                                    fit: BoxFit.contain,),)
                           else
                             Positioned.fill(
-                                child: CustomPaint(painter: GridPainter())),
-                          ..._zones.map((zone) => _buildZone(zone)).toList(),
-                          ..._walls.map((wall) => _buildWall(wall)).toList(),
-                          ..._doors.map((door) => _buildDoor(door)).toList(),
+                                child: CustomPaint(painter: GridPainter()),),
+                          ..._zones.map((zone) => _buildZone(zone)),
+                          ..._walls.map((wall) => _buildWall(wall)),
+                          ..._doors.map((door) => _buildDoor(door)),
                           ..._anchors
                               .map((anchor) => _buildAnchor(anchor))
-                              .toList(),
-                          ..._tags.map((tag) => _buildTag(tag)).toList(),
+                              ,
+                          ..._tags.map((tag) => _buildTag(tag)),
                           Positioned(top: 16, right: 16, child: _buildLegend()),
                           if (_wallStartPoint != null)
                             Positioned(
@@ -140,7 +139,7 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
                                   height: 10,
                                   decoration: const BoxDecoration(
                                       color: Colors.red,
-                                      shape: BoxShape.circle)),
+                                      shape: BoxShape.circle,),),
                             ),
                           // Show placement cursor
                           if (_isPlacingElement && _cursorPosition != null)
@@ -152,15 +151,15 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
                                   children: [
                                     Container(
                                       padding: const EdgeInsets.symmetric(
-                                          horizontal: 8, vertical: 4),
+                                          horizontal: 8, vertical: 4,),
                                       decoration: BoxDecoration(
                                         color: const Color(0xFF007AFF),
                                         borderRadius: BorderRadius.circular(4),
                                       ),
-                                      child: Text(
+                                      child: const Text(
                                         'Click to place',
-                                        style: const TextStyle(
-                                            color: Colors.white, fontSize: 12),
+                                        style: TextStyle(
+                                            color: Colors.white, fontSize: 12,),
                                       ),
                                     ),
                                     const SizedBox(height: 4),
@@ -211,21 +210,21 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
           children: [
             const Text('Tools:',
                 style: TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.bold)),
+                    color: Colors.white, fontWeight: FontWeight.bold,),),
             const SizedBox(width: 16),
             _buildToolButton(
-                'Zone', Icons.crop_square, DrawingMode.zone, Colors.blue),
+                'Zone', Icons.crop_square, DrawingMode.zone, Colors.blue,),
             _buildToolButton(
-                'Wall', Icons.horizontal_rule, DrawingMode.wall, Colors.grey),
+                'Wall', Icons.horizontal_rule, DrawingMode.wall, Colors.grey,),
             _buildToolButton(
-                'Door', Icons.sensor_door, DrawingMode.door, Colors.brown),
+                'Door', Icons.sensor_door, DrawingMode.door, Colors.brown,),
             _buildToolButton(
-                'Anchor', Icons.router, DrawingMode.anchor, Colors.red),
+                'Anchor', Icons.router, DrawingMode.anchor, Colors.red,),
             const Spacer(),
             if (_selectedElement != null)
               IconButton(
                   icon: const Icon(Icons.delete, color: Colors.redAccent),
-                  onPressed: _deleteSelectedElement),
+                  onPressed: _deleteSelectedElement,),
           ],
         ),
       ),
@@ -233,7 +232,7 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
   }
 
   Widget _buildToolButton(
-      String label, IconData icon, DrawingMode mode, Color color) {
+      String label, IconData icon, DrawingMode mode, Color color,) {
     final isSelected = _drawingMode == mode;
     return Padding(
       padding: const EdgeInsets.only(right: 8),
@@ -273,7 +272,7 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
             color: zone.color.withOpacity(0.2),
             border: Border.all(
                 color: isSelected ? Colors.red : zone.color,
-                width: isSelected ? 3 : 2),
+                width: isSelected ? 3 : 2,),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Center(
@@ -281,7 +280,7 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
                   style: TextStyle(
                       color: zone.color,
                       fontWeight: FontWeight.bold,
-                      fontSize: 12))),
+                      fontSize: 12,),),),
         ),
       ),
     );
@@ -324,10 +323,10 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
           decoration: BoxDecoration(
               border: Border.all(
                   color: isSelected ? Colors.red : Colors.brown,
-                  width: isSelected ? 3 : 2),
-              borderRadius: BorderRadius.circular(4)),
+                  width: isSelected ? 3 : 2,),
+              borderRadius: BorderRadius.circular(4),),
           child: CustomPaint(
-              painter: DoorPainter(isSelected), size: const Size(60, 60)),
+              painter: DoorPainter(isSelected), size: const Size(60, 60),),
         ),
       ),
     );
@@ -358,12 +357,12 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
                 shape: BoxShape.circle,
                 border: Border.all(
                     color: isSelected ? Colors.yellow : Colors.red,
-                    width: isSelected ? 3 : 2),
+                    width: isSelected ? 3 : 2,),
                 boxShadow: [
                   BoxShadow(
                       color: Colors.red.withOpacity(0.5),
                       blurRadius: 15,
-                      spreadRadius: 3)
+                      spreadRadius: 3,),
                 ],
               ),
               child: const Icon(Icons.router, color: Colors.red, size: 28),
@@ -372,12 +371,12 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                  color: Colors.red, borderRadius: BorderRadius.circular(4)),
+                  color: Colors.red, borderRadius: BorderRadius.circular(4),),
               child: Text(anchor.id,
                   style: const TextStyle(
                       color: Colors.white,
                       fontSize: 10,
-                      fontWeight: FontWeight.bold)),
+                      fontWeight: FontWeight.bold,),),
             ),
           ],
         ),
@@ -408,12 +407,12 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
             shape: BoxShape.circle,
             border: Border.all(
                 color: isSelected ? Colors.red : Colors.white,
-                width: isSelected ? 3 : 2),
+                width: isSelected ? 3 : 2,),
             boxShadow: [
               BoxShadow(
                   color: tag.type.color.withOpacity(0.5),
                   blurRadius: 10,
-                  spreadRadius: 2)
+                  spreadRadius: 2,),
             ],
           ),
           child:
@@ -428,7 +427,7 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
           color: const Color(0xFF0B0C10).withOpacity(0.9),
-          borderRadius: BorderRadius.circular(8)),
+          borderRadius: BorderRadius.circular(8),),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -437,7 +436,7 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
               style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
-                  fontSize: 14)),
+                  fontSize: 14,),),
           const SizedBox(height: 8),
           ...TagType.values
               .map((type) => Padding(
@@ -447,17 +446,17 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
                       const SizedBox(width: 8),
                       Text(type.label,
                           style: const TextStyle(
-                              color: Colors.white, fontSize: 12)),
-                    ]),
-                  ))
-              .toList(),
+                              color: Colors.white, fontSize: 12,),),
+                    ],),
+                  ),)
+              ,
           const Divider(color: Colors.grey),
           const Row(mainAxisSize: MainAxisSize.min, children: [
             Icon(Icons.router, color: Colors.red, size: 16),
             SizedBox(width: 8),
             Text('UWB Anchor',
-                style: TextStyle(color: Colors.white, fontSize: 12)),
-          ]),
+                style: TextStyle(color: Colors.white, fontSize: 12),),
+          ],),
         ],
       ),
     );
@@ -475,7 +474,7 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
               style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white)),
+                  color: Colors.white,),),
           const SizedBox(height: 8),
           Expanded(
             child: ListView(
@@ -484,7 +483,7 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
                 _buildElementChip('Tags', _tags.length, Icons.sensors),
                 _buildElementChip('Zones', _zones.length, Icons.crop_square),
                 _buildElementChip(
-                    'Walls', _walls.length, Icons.horizontal_rule),
+                    'Walls', _walls.length, Icons.horizontal_rule,),
                 _buildElementChip('Doors', _doors.length, Icons.sensor_door),
                 _buildElementChip('Anchors', _anchors.length, Icons.router),
               ],
@@ -508,7 +507,7 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
         Icon(icon, color: const Color(0xFF00FFC6), size: 20),
         const SizedBox(width: 8),
         Text('$label: $count', style: const TextStyle(color: Colors.white)),
-      ]),
+      ],),
     );
   }
 
@@ -536,7 +535,7 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
             icon: const Icon(Icons.add),
             label: Text(_isPlacingElement && _pendingElementType == 'door'
                 ? 'Click Map'
-                : 'Add Door'),
+                : 'Add Door',),
           ),
         ),
         Padding(
@@ -548,7 +547,7 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
             icon: const Icon(Icons.add),
             label: Text(_isPlacingElement && _pendingElementType == 'anchor'
                 ? 'Click Map'
-                : 'Add Anchor'),
+                : 'Add Anchor',),
           ),
         ),
         const Divider(color: Colors.white),
@@ -562,7 +561,7 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
             icon: Icon(TagType.worker.icon),
             label: Text(_isPlacingElement && _pendingElementType == 'worker'
                 ? 'Click Map'
-                : 'Add Worker'),
+                : 'Add Worker',),
           ),
         ),
         Padding(
@@ -574,7 +573,7 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
             icon: Icon(TagType.vehicle.icon),
             label: Text(_isPlacingElement && _pendingElementType == 'vehicle'
                 ? 'Click Map'
-                : 'Add Vehicle'),
+                : 'Add Vehicle',),
           ),
         ),
         Padding(
@@ -586,7 +585,7 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
             icon: Icon(TagType.equipment.icon),
             label: Text(_isPlacingElement && _pendingElementType == 'equipment'
                 ? 'Click Map'
-                : 'Add Equipment'),
+                : 'Add Equipment',),
           ),
         ),
         Padding(
@@ -598,7 +597,7 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
             icon: Icon(TagType.asset.icon),
             label: Text(_isPlacingElement && _pendingElementType == 'asset'
                 ? 'Click Map'
-                : 'Add Asset'),
+                : 'Add Asset',),
           ),
         ),
       ],
@@ -614,16 +613,18 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
         setState(() {
           _floorPlanBytes = bytes;
         });
-        if (mounted)
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
               content: Text('Floor plan imported'),
-              backgroundColor: Color(0xFF00FFC6)));
+              backgroundColor: Color(0xFF00FFC6),),);
+        }
       }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('Import failed: $e'),
-            backgroundColor: Colors.redAccent));
+            backgroundColor: Colors.redAccent,),);
+      }
     }
   }
 
@@ -638,7 +639,7 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
                 children: [
                   pw.Text('QuantumMind RTLS - Factory Floor Plan',
                       style: pw.TextStyle(
-                          fontSize: 24, fontWeight: pw.FontWeight.bold)),
+                          fontSize: 24, fontWeight: pw.FontWeight.bold,),),
                   pw.SizedBox(height: 20),
                   pw.Text('Map Elements:'),
                   pw.SizedBox(height: 10),
@@ -649,36 +650,38 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
                   pw.Text('• Anchors: ${_anchors.length}'),
                   pw.SizedBox(height: 20),
                   pw.Text('Zones:',
-                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold),),
                   ..._zones.map((zone) => pw.Text('  • ${zone.name}')),
                   pw.SizedBox(height: 20),
                   pw.Text('Tags:',
-                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold),),
                   ..._tags.map(
-                      (tag) => pw.Text('  • ${tag.name} (${tag.type.label})')),
+                      (tag) => pw.Text('  • ${tag.name} (${tag.type.label})'),),
                   if (_anchors.isNotEmpty) ...[
                     pw.SizedBox(height: 20),
                     pw.Text('UWB Anchors:',
-                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),),
                     ..._anchors.map((anchor) =>
-                        pw.Text('  • ${anchor.name} - ID: ${anchor.id}')),
+                        pw.Text('  • ${anchor.name} - ID: ${anchor.id}'),),
                   ],
-                ]);
-          }));
+                ],);
+          },),);
       final output = await getApplicationDocumentsDirectory();
       final file = File(
-          '${output.path}/rtls_map_${DateTime.now().millisecondsSinceEpoch}.pdf');
+          '${output.path}/rtls_map_${DateTime.now().millisecondsSinceEpoch}.pdf',);
       await file.writeAsBytes(await pdf.save());
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('PDF exported to: ${file.path}'),
             backgroundColor: const Color(0xFF00FFC6),
-            duration: const Duration(seconds: 5)));
+            duration: const Duration(seconds: 5),),);
+      }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('PDF export failed: $e'),
-            backgroundColor: Colors.redAccent));
+            backgroundColor: Colors.redAccent,),);
+      }
     }
   }
 
@@ -695,12 +698,12 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
   }
 
   void _addDoor() => setState(() =>
-      _doors.add(MapDoor(x: 200, y: 200, name: 'Door ${_doors.length + 1}')));
+      _doors.add(MapDoor(x: 200, y: 200, name: 'Door ${_doors.length + 1}')),);
 
   void _addAnchor() => showDialog(
       context: context,
       builder: (context) => _AddAnchorDialog(
-          onAdd: (anchor) => setState(() => _anchors.add(anchor))));
+          onAdd: (anchor) => setState(() => _anchors.add(anchor)),),);
 
   void _startPlacingTag(TagType type) {
     setState(() {
@@ -734,7 +737,7 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
             x: position.dx - 30,
             y: position.dy - 30,
             name: 'Door ${_doors.length + 1}',
-          ));
+          ),);
           _isPlacingElement = false;
           _pendingElementType = '';
         });
@@ -796,7 +799,7 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
           y1: _wallStartPoint!.dy,
           x2: position.dx,
           y2: position.dy,
-        ));
+        ),);
         _wallStartPoint = null;
       });
       // Wall created silently - visible on map
@@ -806,9 +809,9 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
   void _deleteSelectedElement() {
     if (_selectedElement == null || !mounted) return;
     setState(() {
-      if (_selectedElement is MapTag)
+      if (_selectedElement is MapTag) {
         _tags.remove(_selectedElement);
-      else if (_selectedElement is MapZone)
+      } else if (_selectedElement is MapZone)
         _zones.remove(_selectedElement);
       else if (_selectedElement is MapWall)
         _walls.remove(_selectedElement);
@@ -824,7 +827,7 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
       context: context,
       backgroundColor: const Color(0xFF1F2937),
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),),
       builder: (context) => Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -838,13 +841,13 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
                   style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white))
-            ]),
+                      color: Colors.white,),),
+            ],),
             const SizedBox(height: 16),
             _buildDetailRow('Anchor ID', anchor.id),
             _buildDetailRow('Type', 'UWB Anchor'),
             _buildDetailRow(
-                'Position', 'X: ${anchor.x.toInt()}, Y: ${anchor.y.toInt()}'),
+                'Position', 'X: ${anchor.x.toInt()}, Y: ${anchor.y.toInt()}',),
             _buildDetailRow('Status', 'Active'),
             const SizedBox(height: 24),
             SizedBox(
@@ -852,8 +855,8 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
                 child: ElevatedButton(
                     onPressed: () => Navigator.pop(context),
                     style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF007AFF)),
-                    child: const Text('Close'))),
+                        backgroundColor: const Color(0xFF007AFF),),
+                    child: const Text('Close'),),),
           ],
         ),
       ),
@@ -865,7 +868,7 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
       context: context,
       backgroundColor: const Color(0xFF1F2937),
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),),
       builder: (context) => Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -879,21 +882,21 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
                   style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white))
-            ]),
+                      color: Colors.white,),),
+            ],),
             const SizedBox(height: 16),
             _buildDetailRow('ID', tag.id),
             _buildDetailRow('Type', tag.type.label),
             _buildDetailRow(
-                'Position', 'X: ${tag.x.toInt()}, Y: ${tag.y.toInt()}'),
+                'Position', 'X: ${tag.x.toInt()}, Y: ${tag.y.toInt()}',),
             const SizedBox(height: 24),
             SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                     onPressed: () => Navigator.pop(context),
                     style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF007AFF)),
-                    child: const Text('Close'))),
+                        backgroundColor: const Color(0xFF007AFF),),
+                    child: const Text('Close'),),),
           ],
         ),
       ),
@@ -907,8 +910,8 @@ class _AdvancedRtlsMapScreenState extends State<AdvancedRtlsMapScreen> {
           Text(label, style: const TextStyle(color: Colors.grey)),
           Text(value,
               style: const TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.bold)),
-        ]),
+                  color: Colors.white, fontWeight: FontWeight.bold,),),
+        ],),
       );
 }
 
@@ -926,7 +929,7 @@ class MapTag extends MapElement {
       required this.name,
       required this.x,
       required this.y,
-      required this.type});
+      required this.type,});
 }
 
 class MapZone extends MapElement {
@@ -942,7 +945,7 @@ class MapZone extends MapElement {
       required this.y,
       required this.width,
       required this.height,
-      required this.color});
+      required this.color,});
 }
 
 class MapWall extends MapElement {
@@ -951,7 +954,7 @@ class MapWall extends MapElement {
   double x2;
   double y2;
   MapWall(
-      {required this.x1, required this.y1, required this.x2, required this.y2});
+      {required this.x1, required this.y1, required this.x2, required this.y2,});
 }
 
 class MapDoor extends MapElement {
@@ -967,7 +970,7 @@ class MapAnchor extends MapElement {
   double x;
   double y;
   MapAnchor(
-      {required this.id, required this.name, required this.x, required this.y});
+      {required this.id, required this.name, required this.x, required this.y,});
 }
 
 enum TagType {
@@ -991,10 +994,12 @@ class GridPainter extends CustomPainter {
     final paint = Paint()
       ..color = Colors.white.withOpacity(0.1)
       ..strokeWidth = 1;
-    for (double i = 0; i < size.width; i += 50)
+    for (double i = 0; i < size.width; i += 50) {
       canvas.drawLine(Offset(i, 0), Offset(i, size.height), paint);
-    for (double i = 0; i < size.height; i += 50)
+    }
+    for (double i = 0; i < size.height; i += 50) {
       canvas.drawLine(Offset(0, i), Offset(size.width, i), paint);
+    }
   }
 
   @override
@@ -1034,17 +1039,17 @@ class DoorPainter extends CustomPainter {
         Rect.fromLTWH(5, 5, size.width - 10, size.height - 10),
         Paint()
           ..color = Colors.brown.withOpacity(0.3)
-          ..style = PaintingStyle.fill);
+          ..style = PaintingStyle.fill,);
     final panelWidth = (size.width - 20) / 2;
     canvas.drawRect(
-        Rect.fromLTWH(8, 8, panelWidth - 2, size.height - 16), paint);
+        Rect.fromLTWH(8, 8, panelWidth - 2, size.height - 16), paint,);
     canvas.drawRect(
         Rect.fromLTWH(10 + panelWidth, 8, panelWidth - 2, size.height - 16),
-        paint);
+        paint,);
     canvas.drawCircle(Offset(8 + panelWidth - 8, size.height / 2), 3,
-        Paint()..color = Colors.yellow);
+        Paint()..color = Colors.yellow,);
     canvas.drawCircle(Offset(10 + panelWidth + 8, size.height / 2), 3,
-        Paint()..color = Colors.yellow);
+        Paint()..color = Colors.yellow,);
   }
 
   @override
@@ -1070,7 +1075,7 @@ class _AddTagDialogState extends State<_AddTagDialog> {
     return AlertDialog(
       backgroundColor: const Color(0xFF1F2937),
       title: Text('Add ${widget.type.label} Tag',
-          style: const TextStyle(color: Colors.white)),
+          style: const TextStyle(color: Colors.white),),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -1105,7 +1110,7 @@ class _AddTagDialogState extends State<_AddTagDialog> {
       actions: [
         TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel')),
+            child: const Text('Cancel'),),
         TextButton(
           onPressed: () {
             final prefix = widget.type == TagType.worker
@@ -1126,7 +1131,7 @@ class _AddTagDialogState extends State<_AddTagDialog> {
               x: position.dx - 25,
               y: position.dy - 25,
               type: widget.type,
-            ));
+            ),);
             Navigator.pop(context);
           },
           child: const Text('Add'),
@@ -1159,7 +1164,7 @@ class _AddZoneDialogState extends State<_AddZoneDialog> {
               style: const TextStyle(color: Colors.white),
               decoration: const InputDecoration(
                   labelText: 'Zone Name',
-                  labelStyle: TextStyle(color: Colors.grey))),
+                  labelStyle: TextStyle(color: Colors.grey),),),
           const SizedBox(height: 16),
           const Text('Color:', style: TextStyle(color: Colors.grey)),
           const SizedBox(height: 8),
@@ -1170,7 +1175,7 @@ class _AddZoneDialogState extends State<_AddZoneDialog> {
                 Colors.green,
                 Colors.orange,
                 Colors.purple,
-                Colors.red
+                Colors.red,
               ]
                   .map((color) => GestureDetector(
                       onTap: () => setState(() => _selectedColor = color),
@@ -1184,14 +1189,14 @@ class _AddZoneDialogState extends State<_AddZoneDialog> {
                                   color: _selectedColor == color
                                       ? Colors.white
                                       : Colors.transparent,
-                                  width: 3)))))
-                  .toList()),
+                                  width: 3,),),),),)
+                  .toList(),),
         ],
       ),
       actions: [
         TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel')),
+            child: const Text('Cancel'),),
         TextButton(
             onPressed: () {
               widget.onAdd(MapZone(
@@ -1202,10 +1207,10 @@ class _AddZoneDialogState extends State<_AddZoneDialog> {
                   y: 100,
                   width: 200,
                   height: 150,
-                  color: _selectedColor));
+                  color: _selectedColor,),);
               Navigator.pop(context);
             },
-            child: const Text('Add')),
+            child: const Text('Add'),),
       ],
     );
   }
@@ -1236,20 +1241,20 @@ class _AddAnchorDialogState extends State<_AddAnchorDialog> {
               style: const TextStyle(color: Colors.white),
               decoration: const InputDecoration(
                   labelText: 'Anchor ID (e.g., A001)',
-                  labelStyle: TextStyle(color: Colors.grey))),
+                  labelStyle: TextStyle(color: Colors.grey),),),
           const SizedBox(height: 16),
           TextField(
               controller: _nameController,
               style: const TextStyle(color: Colors.white),
               decoration: const InputDecoration(
                   labelText: 'Anchor Name',
-                  labelStyle: TextStyle(color: Colors.grey))),
+                  labelStyle: TextStyle(color: Colors.grey),),),
         ],
       ),
       actions: [
         TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel')),
+            child: const Text('Cancel'),),
         TextButton(
             onPressed: () {
               final position = widget.position ?? const Offset(150, 150);
@@ -1261,10 +1266,10 @@ class _AddAnchorDialogState extends State<_AddAnchorDialog> {
                       ? 'Anchor'
                       : _nameController.text,
                   x: position.dx - 25,
-                  y: position.dy - 25));
+                  y: position.dy - 25,),);
               Navigator.pop(context);
             },
-            child: const Text('Add')),
+            child: const Text('Add'),),
       ],
     );
   }

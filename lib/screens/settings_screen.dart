@@ -69,7 +69,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       style: TextStyle(color: Colors.grey),
                     ),
                     value: themeProvider.isDarkMode,
-                    activeColor: const Color(0xFF007AFF),
+                    activeThumbColor: const Color(0xFF007AFF),
                     onChanged: (value) {
                       themeProvider.setDarkMode(value);
                     },
@@ -95,7 +95,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       style: TextStyle(color: Colors.grey),
                     ),
                     value: _notifications,
-                    activeColor: const Color(0xFF007AFF),
+                    activeThumbColor: const Color(0xFF007AFF),
                     onChanged: (value) async {
                       await _settingsService.setNotificationsEnabled(value);
                       setState(() => _notifications = value);
@@ -145,7 +145,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       style: const TextStyle(color: Colors.grey),
                     ),
                     value: _autoBackup,
-                    activeColor: const Color(0xFF007AFF),
+                    activeThumbColor: const Color(0xFF007AFF),
                     onChanged: (value) async {
                       await _settingsService.setAutoBackupEnabled(value);
                       setState(() => _autoBackup = value);
@@ -280,12 +280,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildSettingCard(
               child: Column(
                 children: [
-                  ListTile(
-                    title: const Text(
+                  const ListTile(
+                    title: Text(
                       'Version',
                       style: TextStyle(color: Colors.white),
                     ),
-                    subtitle: const Text(
+                    subtitle: Text(
                       '1.0.0',
                       style: TextStyle(color: Colors.grey),
                     ),
@@ -425,7 +425,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   }
                 },
               );
-            }).toList(),
+            }),
           ],
         );
       },

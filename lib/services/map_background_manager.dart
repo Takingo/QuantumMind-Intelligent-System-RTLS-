@@ -11,8 +11,19 @@ import '../models/map_element_models.dart';
 /// Map Background Manager
 /// Handles floor plan imports, grid creation, and background management
 class MapBackgroundManager {
-  // Multi-floor support
-  List<MapFloor> _floors = [];
+  // Singleton instance so all screens share the same floors in-memory
+  static final MapBackgroundManager _instance =
+      MapBackgroundManager._internal();
+
+  factory MapBackgroundManager() => _instance;
+
+  MapBackgroundManager._internal() {
+    // Initialize with a default floor once
+    _floors.add(_createDefaultFloor());
+  }
+
+  // Multi-floor state
+  final List<MapFloor> _floors = [];
   int _currentFloorIndex = 0;
 
   // Current floor getters
@@ -21,11 +32,6 @@ class MapBackgroundManager {
 
   List<MapFloor> get floors => _floors;
   int get currentFloorIndex => _currentFloorIndex;
-
-  // Initialize with a default floor
-  MapBackgroundManager() {
-    _floors.add(_createDefaultFloor());
-  }
 
   MapFloor _createDefaultFloor() {
     return MapFloor(
@@ -85,20 +91,26 @@ class MapBackgroundManager {
               children: [
                 ListTile(
                   leading: const Icon(Icons.image, color: Colors.blue),
-                  title: const Text('From Gallery (Image)',
-                      style: TextStyle(color: Colors.white)),
+                  title: const Text(
+                    'From Gallery (Image)',
+                    style: TextStyle(color: Colors.white),
+                  ),
                   onTap: () => Navigator.of(context).pop('image'),
                 ),
                 ListTile(
                   leading: const Icon(Icons.camera_alt, color: Colors.green),
-                  title: const Text('From Camera',
-                      style: TextStyle(color: Colors.white)),
+                  title: const Text(
+                    'From Camera',
+                    style: TextStyle(color: Colors.white),
+                  ),
                   onTap: () => Navigator.of(context).pop('camera'),
                 ),
                 ListTile(
                   leading: const Icon(Icons.picture_as_pdf, color: Colors.red),
-                  title: const Text('From PDF',
-                      style: TextStyle(color: Colors.white)),
+                  title: const Text(
+                    'From PDF',
+                    style: TextStyle(color: Colors.white),
+                  ),
                   onTap: () => Navigator.of(context).pop('pdf'),
                 ),
               ],
@@ -261,11 +273,9 @@ class MapBackgroundManager {
                     style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
                   ),
                   ...zones.map((zone) {
-                    if (zone is MapZone) {
-                      return pw.Text('  • ${zone.name}');
-                    }
+                    return pw.Text('  • ${zone.name}');
                     return pw.Text('  • Unknown Zone');
-                  }).toList(),
+                  }),
                   pw.SizedBox(height: 10),
                 ],
                 if (tags.isNotEmpty) ...[
@@ -274,11 +284,9 @@ class MapBackgroundManager {
                     style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
                   ),
                   ...tags.map((tag) {
-                    if (tag is MapTag) {
-                      return pw.Text('  • ${tag.name} (${tag.type.label})');
-                    }
+                    return pw.Text('  • ${tag.name} (${tag.type.label})');
                     return pw.Text('  • Unknown Tag');
-                  }).toList(),
+                  }),
                   pw.SizedBox(height: 10),
                 ],
                 if (anchors.isNotEmpty) ...[
@@ -287,11 +295,9 @@ class MapBackgroundManager {
                     style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
                   ),
                   ...anchors.map((anchor) {
-                    if (anchor is MapAnchor) {
-                      return pw.Text('  • ${anchor.name} - ID: ${anchor.id}');
-                    }
+                    return pw.Text('  • ${anchor.name} - ID: ${anchor.id}');
                     return pw.Text('  • Unknown Anchor');
-                  }).toList(),
+                  }),
                 ],
               ],
             );

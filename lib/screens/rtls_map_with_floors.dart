@@ -1,10 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:typed_data';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
-import 'package:image_picker/image_picker.dart';
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
 import '../services/map_background_manager.dart';
 import '../models/map_element_models.dart';
 
@@ -24,8 +18,8 @@ class _RtlsMapWithFloorsScreenState extends State<RtlsMapWithFloorsScreen> {
   MapElement? _selectedElement;
   DrawingMode _drawingMode = DrawingMode.none;
   Offset? _wallStartPoint;
-  bool _isPlacingElement = false;
-  String _pendingElementType = '';
+  final bool _isPlacingElement = false;
+  final String _pendingElementType = '';
   bool _isDisposed = false;
   MapZone? _distanceLineStartZone; // For measuring zone-to-zone distance
 
@@ -38,7 +32,7 @@ class _RtlsMapWithFloorsScreenState extends State<RtlsMapWithFloorsScreen> {
   // Measurement system
   double _mapScale = 0.025; // 1px = 0.025m (2.5cm)
   String _measurementUnit = 'meter'; // meter, cm, feet
-  bool _showMeasurements = true;
+  final bool _showMeasurements = true;
 
   @override
   void initState() {
@@ -177,9 +171,9 @@ class _RtlsMapWithFloorsScreenState extends State<RtlsMapWithFloorsScreen> {
           IconButton(
               icon: const Icon(Icons.straighten),
               tooltip: 'Map Config',
-              onPressed: _showMapConfig),
+              onPressed: _showMapConfig,),
           IconButton(
-              icon: const Icon(Icons.picture_as_pdf), onPressed: _exportToPdf),
+              icon: const Icon(Icons.picture_as_pdf), onPressed: _exportToPdf,),
           IconButton(
             icon: Icon(_isEditMode ? Icons.check : Icons.edit),
             onPressed: () => setState(() {
@@ -212,13 +206,13 @@ class _RtlsMapWithFloorsScreenState extends State<RtlsMapWithFloorsScreen> {
                     Expanded(
                       child: Container(
                         margin: const EdgeInsets.only(
-                            top: 4, right: 4, bottom: 4), // Reduced margins
+                            top: 4, right: 4, bottom: 4,), // Reduced margins
                         decoration: BoxDecoration(
                           color: const Color(0xFF1F2937),
                           borderRadius:
                               BorderRadius.circular(12), // Smaller radius
                           border: Border.all(
-                              color: const Color(0xFF007AFF).withOpacity(0.3)),
+                              color: const Color(0xFF007AFF).withOpacity(0.3),),
                         ),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(12),
@@ -232,36 +226,36 @@ class _RtlsMapWithFloorsScreenState extends State<RtlsMapWithFloorsScreen> {
                                     _handleWallDrawing(details.localPosition);
                                   } else if (_isPlacingElement) {
                                     _placeElementAtPosition(
-                                        details.localPosition);
+                                        details.localPosition,);
                                   }
                                 },
                                 child: Stack(
                                   children: [
                                     Positioned.fill(
                                         child: _backgroundManager
-                                            .getBackgroundWidget()),
+                                            .getBackgroundWidget(),),
                                     ..._zones
                                         .map((zone) => _buildZone(zone))
-                                        .toList(),
+                                        ,
                                     ..._walls
                                         .map((wall) => _buildWall(wall))
-                                        .toList(),
+                                        ,
                                     ..._doors
                                         .map((door) => _buildDoor(door))
-                                        .toList(),
+                                        ,
                                     ..._anchors
                                         .map((anchor) => _buildAnchor(anchor))
-                                        .toList(),
+                                        ,
                                     ..._distanceLines
                                         .map((line) => _buildDistanceLine(line))
-                                        .toList(),
+                                        ,
                                     ..._tags
                                         .map((tag) => _buildTag(tag))
-                                        .toList(),
+                                        ,
                                     Positioned(
                                         top: 16,
                                         right: 16,
-                                        child: _buildLegend()),
+                                        child: _buildLegend(),),
                                     if (_wallStartPoint != null)
                                       Positioned(
                                         left: _wallStartPoint!.dx - 5,
@@ -271,7 +265,7 @@ class _RtlsMapWithFloorsScreenState extends State<RtlsMapWithFloorsScreen> {
                                             height: 10,
                                             decoration: const BoxDecoration(
                                                 color: Colors.red,
-                                                shape: BoxShape.circle)),
+                                                shape: BoxShape.circle,),),
                                       ),
                                   ],
                                 ),
@@ -352,15 +346,15 @@ class _RtlsMapWithFloorsScreenState extends State<RtlsMapWithFloorsScreen> {
                                 title: Text(
                                   tag.name,
                                   style: const TextStyle(
-                                      color: Colors.white, fontSize: 12),
+                                      color: Colors.white, fontSize: 12,),
                                 ),
                                 subtitle: Text(
                                   '${tag.type.label} - ${tag.id}',
                                   style: const TextStyle(
-                                      color: Colors.grey, fontSize: 10),
+                                      color: Colors.grey, fontSize: 10,),
                                 ),
                                 trailing: Icon(tag.type.icon,
-                                    color: tag.type.color, size: 16),
+                                    color: tag.type.color, size: 16,),
                               );
                             },
                           ),
@@ -387,12 +381,12 @@ class _RtlsMapWithFloorsScreenState extends State<RtlsMapWithFloorsScreen> {
                                 title: Text(
                                   door.name,
                                   style: const TextStyle(
-                                      color: Colors.white, fontSize: 12),
+                                      color: Colors.white, fontSize: 12,),
                                 ),
                                 subtitle: Text(
                                   'Position: (${door.x.toStringAsFixed(0)}, ${door.y.toStringAsFixed(0)})',
                                   style: const TextStyle(
-                                      color: Colors.grey, fontSize: 10),
+                                      color: Colors.grey, fontSize: 10,),
                                 ),
                               );
                             },
@@ -420,12 +414,12 @@ class _RtlsMapWithFloorsScreenState extends State<RtlsMapWithFloorsScreen> {
                                 title: Text(
                                   anchor.name,
                                   style: const TextStyle(
-                                      color: Colors.white, fontSize: 12),
+                                      color: Colors.white, fontSize: 12,),
                                 ),
                                 subtitle: Text(
                                   'ID: ${anchor.id} - Position: (${anchor.x.toStringAsFixed(0)}, ${anchor.y.toStringAsFixed(0)})',
                                   style: const TextStyle(
-                                      color: Colors.grey, fontSize: 10),
+                                      color: Colors.grey, fontSize: 10,),
                                 ),
                               );
                             },
@@ -451,12 +445,12 @@ class _RtlsMapWithFloorsScreenState extends State<RtlsMapWithFloorsScreen> {
                                 title: Text(
                                   'No alerts',
                                   style: TextStyle(
-                                      color: Colors.white, fontSize: 12),
+                                      color: Colors.white, fontSize: 12,),
                                 ),
                                 subtitle: Text(
                                   'System is operating normally',
                                   style: TextStyle(
-                                      color: Colors.grey, fontSize: 10),
+                                      color: Colors.grey, fontSize: 10,),
                                 ),
                               ),
                             ],
@@ -570,7 +564,7 @@ class _RtlsMapWithFloorsScreenState extends State<RtlsMapWithFloorsScreen> {
   // Show dialog for adding new floor
   void _showAddFloorDialog() {
     final floorNameController = TextEditingController(
-        text: 'Floor ${_backgroundManager.floors.length + 1}');
+        text: 'Floor ${_backgroundManager.floors.length + 1}',);
 
     showDialog(
       context: context,

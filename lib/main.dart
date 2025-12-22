@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'services/settings_service.dart';
 import 'services/localization_service.dart';
+import 'services/supabase_service.dart';
 import 'app.dart';
 
 void main() async {
@@ -21,16 +22,13 @@ void main() async {
   // Initialize Localization Service
   await LocalizationService.instance.initialize();
 
-  // Skip Supabase initialization for demo mode
-  // Initialize Supabase only if credentials are configured
-  // Uncomment below when Supabase is properly configured:
-  /*
+  // Initialize Supabase
   try {
     await SupabaseService.initialize();
+    debugPrint('✅ Supabase initialized successfully!');
   } catch (e) {
-    debugPrint('Supabase initialization error: $e');
+    debugPrint('❌ Supabase initialization error: $e');
   }
-  */
 
   runApp(const QuantumMindApp());
 }

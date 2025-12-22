@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import '../services/mqtt_service.dart';
+import '../services/geo_fence_service.dart';
 import '../utils/constants.dart';
 
 /// RTLS Data Provider
 /// Manages real-time position data and door status from MQTT
 class RtlsProvider with ChangeNotifier {
   final MqttService _mqttService = MqttService.instance;
+  late final GeoFenceService _geoFenceService;
 
   // Tag positions: tagId -> {x, y, timestamp}
   final Map<String, TagPosition> _tagPositions = {};
@@ -27,9 +29,16 @@ class RtlsProvider with ChangeNotifier {
   Map<String, TagPosition> get tagPositions => Map.unmodifiable(_tagPositions);
   Map<String, DoorStatus> get doorStatuses => Map.unmodifiable(_doorStatuses);
 
+  RtlsProvider() {
+    _geoFenceService = GeoFenceService.getInstance(this);
+  }
+
   /// Initialize MQTT connection and start listening
   Future<bool> initialize() async {
     try {
+      // Initialize geo-fence service
+      await _geoFenceService.initialize();
+
       if (_mqttService.isConnected) {
         _isConnected = true;
         _startListening();
@@ -57,18 +66,23 @@ class RtlsProvider with ChangeNotifier {
 
     try {
       // Listen to RTLS position updates
-      _positionSubscription = _mqttService
-          .listenToTopic(AppConstants.mqttTopicRtlsPosition)
-          .listen(_handlePositionUpdate, onError: (error) {
-        debugPrint('Position update error: $error');
-      });
+      _positionSubscription =
+          _mqttService.listenToTopic(AppConstants.mqttTopicRtlsPosition).listen(
+        _handlePositionUpdate,
+        onError: (error) {
+          debugPrint('Position update error: $error');
+        },
+      );
 
       // Listen to door status updates (use sensor topic as door status channel)
       _doorSubscription = _mqttService
           .listenToTopic('${AppConstants.mqttTopicDoorControl}/status')
-          .listen(_handleDoorStatusUpdate, onError: (error) {
-        debugPrint('Door status update error: $error');
-      });
+          .listen(
+        _handleDoorStatusUpdate,
+        onError: (error) {
+          debugPrint('Door status update error: $error');
+        },
+      );
 
       _isListening = true;
       notifyListeners();

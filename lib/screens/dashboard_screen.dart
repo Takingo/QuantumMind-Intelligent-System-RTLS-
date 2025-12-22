@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../services/map_background_manager.dart';
 import 'login_screen.dart';
 import 'settings_screen.dart';
 import 'access_logs_screen.dart';
@@ -19,6 +20,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _isDoorsExpanded = false;
   bool _isSensorsExpanded = false;
   bool _isAlertsExpanded = false;
+
+  final MapBackgroundManager _mapManager = MapBackgroundManager();
+  Offset _rtlsLegendOffset = Offset.zero;
 
   @override
   Widget build(BuildContext context) {
@@ -104,14 +108,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
               // Main Content Area - RTLS Map and Stats
               Expanded(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Left - RTLS Map (Large Area)
+                    // RTLS Live Map - full width
                     Expanded(
-                      flex: 3,
+                      flex: 4,
                       child: Container(
-                        margin: const EdgeInsets.only(right: 16),
+                        margin: const EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
                           color: const Color(0xFF1F2937),
                           borderRadius: BorderRadius.circular(16),
@@ -123,97 +127,173 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           borderRadius: BorderRadius.circular(16),
                           child: Stack(
                             children: [
-                              // Placeholder for RTLS Map
+                              // Global RTLS overview
                               Container(
                                 color: const Color(0xFF0B0C10),
-                                child: const Center(
+                                child: Center(
                                   child: Column(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Icon(
-                                        Icons.map,
-                                        size: 64,
-                                        color: Color(0xFF007AFF),
+                                      const Icon(
+                                        Icons.public,
+                                        size: 56,
+                                        color: Color(0xFF00FFC6),
                                       ),
-                                      SizedBox(height: 16),
-                                      Text(
-                                        'RTLS Live Map',
+                                      const SizedBox(height: 8),
+                                      const Text(
+                                        'Global RTLS View',
                                         style: TextStyle(
-                                          fontSize: 20,
+                                          fontSize: 18,
                                           color: Colors.white,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
-                                      SizedBox(height: 8),
+                                      const SizedBox(height: 6),
                                       Text(
-                                        'Real-time location tracking and visualization',
-                                        style: TextStyle(
-                                          fontSize: 14,
+                                        _mapManager.floors.isEmpty
+                                            ? 'No floors defined yet. Open RTLS Map to create floors.'
+                                            : 'Floors: ${_mapManager.floors.length}',
+                                        style: const TextStyle(
+                                          fontSize: 13,
                                           color: Colors.grey,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      if (_mapManager.floors.isNotEmpty)
+                                        Wrap(
+                                          alignment: WrapAlignment.center,
+                                          spacing: 8,
+                                          runSpacing: 8,
+                                          children: [
+                                            for (int i = 0;
+                                                i < _mapManager.floors.length;
+                                                i++)
+                                              ChoiceChip(
+                                                label: Text(
+                                                  _mapManager.floors[i].name,
+                                                ),
+                                                selected: false,
+                                                labelStyle: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 12,
+                                                ),
+                                                backgroundColor:
+                                                    const Color(0xFF111827),
+                                                selectedColor:
+                                                    const Color(0xFF007AFF),
+                                                onSelected: (_) {
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (_) =>
+                                                          AdvancedRtlsMapScreen(
+                                                        initialFloorIndex: i,
+                                                      ),
+                                                    ),
+                                                  ).then((_) {
+                                                    setState(() {});
+                                                  });
+                                                },
+                                              ),
+                                          ],
+                                        ),
+                                      const SizedBox(height: 8),
+                                      TextButton.icon(
+                                        onPressed: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) =>
+                                                  const AdvancedRtlsMapScreen(),
+                                            ),
+                                          ).then((_) {
+                                            setState(() {});
+                                          });
+                                        },
+                                        icon: const Icon(Icons.map,
+                                            color: Color(0xFF00FFC6), size: 18),
+                                        label: const Text(
+                                          'Open Advanced RTLS Map',
+                                          style: TextStyle(
+                                            color: Color(0xFF00FFC6),
+                                            fontSize: 13,
+                                          ),
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
                               ),
-                              // Map Legend
+                              // Map Legend - draggable
                               Positioned(
                                 top: 16,
                                 right: 16,
-                                child: Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF0B0C10)
-                                        .withOpacity(0.9),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Row(
+                                child: GestureDetector(
+                                  onPanUpdate: (details) {
+                                    setState(() {
+                                      _rtlsLegendOffset += details.delta;
+                                    });
+                                  },
+                                  child: Transform.translate(
+                                    offset: _rtlsLegendOffset,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF0B0C10)
+                                            .withOpacity(0.9),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          Container(
-                                            width: 12,
-                                            height: 12,
-                                            decoration: const BoxDecoration(
-                                              color: Color(0xFF00FFC6),
-                                              shape: BoxShape.circle,
-                                            ),
+                                          Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Container(
+                                                width: 12,
+                                                height: 12,
+                                                decoration: const BoxDecoration(
+                                                  color: Color(0xFF00FFC6),
+                                                  shape: BoxShape.circle,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              const Text(
+                                                'Active Tags',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                          const SizedBox(width: 8),
-                                          const Text(
-                                            'Active Tags',
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 12),
+                                          const SizedBox(height: 4),
+                                          Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Container(
+                                                width: 12,
+                                                height: 12,
+                                                decoration: const BoxDecoration(
+                                                  color: Color(0xFF007AFF),
+                                                  shape: BoxShape.circle,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              const Text(
+                                                'Doors',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ],
                                       ),
-                                      const SizedBox(height: 4),
-                                      Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Container(
-                                            width: 12,
-                                            height: 12,
-                                            decoration: const BoxDecoration(
-                                              color: Color(0xFF007AFF),
-                                              shape: BoxShape.circle,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          const Text(
-                                            'Doors',
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 12),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
+                                    ),
                                   ),
                                 ),
                               ),
@@ -223,73 +303,68 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ),
 
-                    // Right - Stats Cards (Compact)
+                    // Stats Cards moved under the map
                     SizedBox(
-                      width: 250,
-                      child: SingleChildScrollView(
-                        child: Column(
-                          children: [
-                            _buildExpandableStatCard(
-                              'Active Tags',
-                              '24',
-                              Icons.sensors,
-                              const Color(0xFF00FFC6),
-                              _isTagsExpanded,
-                              () => setState(() {
-                                _isTagsExpanded = !_isTagsExpanded;
-                                // Close other cards when one opens
-                                _isDoorsExpanded = false;
-                                _isSensorsExpanded = false;
-                                _isAlertsExpanded = false;
-                              }),
-                            ),
-                            const SizedBox(height: 12),
-                            _buildExpandableStatCard(
-                              'Doors',
-                              '8',
-                              Icons.door_front_door,
-                              const Color(0xFF007AFF),
-                              _isDoorsExpanded,
-                              () => setState(() {
-                                _isDoorsExpanded = !_isDoorsExpanded;
-                                // Close other cards when one opens
-                                _isTagsExpanded = false;
-                                _isSensorsExpanded = false;
-                                _isAlertsExpanded = false;
-                              }),
-                            ),
-                            const SizedBox(height: 12),
-                            _buildExpandableStatCard(
-                              'Sensors',
-                              '12',
-                              Icons.thermostat,
-                              const Color(0xFF9D4EDD),
-                              _isSensorsExpanded,
-                              () => setState(() {
-                                _isSensorsExpanded = !_isSensorsExpanded;
-                                // Close other cards when one opens
-                                _isTagsExpanded = false;
-                                _isDoorsExpanded = false;
-                                _isAlertsExpanded = false;
-                              }),
-                            ),
-                            const SizedBox(height: 12),
-                            _buildExpandableStatCard(
-                              'Alerts',
-                              '0',
-                              Icons.warning,
-                              const Color(0xFFF59E0B),
-                              _isAlertsExpanded,
-                              () => setState(() {
-                                _isAlertsExpanded = !_isAlertsExpanded;
-                                // Close other cards when one opens
-                                _isTagsExpanded = false;
-                                _isDoorsExpanded = false;
-                                _isSensorsExpanded = false;
-                              }),
-                            ),
-                          ],
-                        ),
+                      height: 110,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        children: [
+                          _buildExpandableStatCard(
+                            'Active Tags',
+                            '24',
+                            Icons.sensors,
+                            const Color(0xFF00FFC6),
+                            _isTagsExpanded,
+                            () => setState(() {
+                              _isTagsExpanded = !_isTagsExpanded;
+                              _isDoorsExpanded = false;
+                              _isSensorsExpanded = false;
+                              _isAlertsExpanded = false;
+                            }),
+                          ),
+                          const SizedBox(width: 12),
+                          _buildExpandableStatCard(
+                            'Doors',
+                            '8',
+                            Icons.door_front_door,
+                            const Color(0xFF007AFF),
+                            _isDoorsExpanded,
+                            () => setState(() {
+                              _isDoorsExpanded = !_isDoorsExpanded;
+                              _isTagsExpanded = false;
+                              _isSensorsExpanded = false;
+                              _isAlertsExpanded = false;
+                            }),
+                          ),
+                          const SizedBox(width: 12),
+                          _buildExpandableStatCard(
+                            'Sensors',
+                            '12',
+                            Icons.thermostat,
+                            const Color(0xFF9D4EDD),
+                            _isSensorsExpanded,
+                            () => setState(() {
+                              _isSensorsExpanded = !_isSensorsExpanded;
+                              _isTagsExpanded = false;
+                              _isDoorsExpanded = false;
+                              _isAlertsExpanded = false;
+                            }),
+                          ),
+                          const SizedBox(width: 12),
+                          _buildExpandableStatCard(
+                            'Alerts',
+                            '0',
+                            Icons.warning,
+                            const Color(0xFFF59E0B),
+                            _isAlertsExpanded,
+                            () => setState(() {
+                              _isAlertsExpanded = !_isAlertsExpanded;
+                              _isTagsExpanded = false;
+                              _isDoorsExpanded = false;
+                              _isSensorsExpanded = false;
+                            }),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -381,7 +456,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildStatCard(
-      String title, String value, IconData icon, Color color) {
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -438,8 +517,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildExpandableStatCard(String title, String value, IconData icon,
-      Color color, bool isExpanded, VoidCallback onTap) {
+  Widget _buildExpandableStatCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+    bool isExpanded,
+    VoidCallback onTap,
+  ) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -470,7 +555,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Expanded(
                     child: Text(
                       '$title: $value',
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,

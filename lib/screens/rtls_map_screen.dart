@@ -38,7 +38,7 @@ class _RtlsMapScreenState extends State<RtlsMapScreen> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
-                      _isEditMode ? 'Edit mode enabled' : 'Edit mode disabled'),
+                      _isEditMode ? 'Edit mode enabled' : 'Edit mode disabled',),
                 ),
               );
             },
@@ -84,8 +84,8 @@ class _RtlsMapScreenState extends State<RtlsMapScreen> {
                               left: tag.x,
                               top: tag.y,
                               child: _buildTag(tag),
-                            ))
-                        .toList(),
+                            ),)
+                        ,
 
                     // Legend
                     Positioned(
@@ -374,7 +374,7 @@ class _RtlsMapScreenState extends State<RtlsMapScreen> {
               const SizedBox(height: 16),
               _buildDetailRow('ID', tag.id),
               _buildDetailRow(
-                  'Position', 'X: ${tag.x.toInt()}, Y: ${tag.y.toInt()}'),
+                  'Position', 'X: ${tag.x.toInt()}, Y: ${tag.y.toInt()}',),
               _buildDetailRow('Status', tag.isActive ? 'Active' : 'Offline'),
               const SizedBox(height: 24),
               SizedBox(

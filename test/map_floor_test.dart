@@ -131,7 +131,7 @@ void main() {
       manager.removeFloor(1);
       expect(manager.floors.length, 3);
       expect(manager.floors[1].name,
-          'Second Floor'); // This should now be the third floor
+          'Second Floor',); // This should now be the third floor
     });
 
     test('MapBackgroundManager prevents removing the last floor', () {

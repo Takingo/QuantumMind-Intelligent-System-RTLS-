@@ -1,3 +1,6 @@
+import 'connection_type.dart';
+import '../utils/constants.dart';
+
 /// RTLS Node (Anchor) Model
 class RtlsNodeModel {
   final String id;
@@ -12,7 +15,10 @@ class RtlsNodeModel {
   final String? ipAddress;
   final String? macAddress;
   final String? firmwareVersion;
-  
+  final ConnectionType connectionType; // Ethernet or WiFi
+  final DateTime? lastEthernetSync; // Last sync time via Ethernet
+  final DateTime? lastWifiSync; // Last sync time via WiFi
+
   RtlsNodeModel({
     required this.id,
     required this.name,
@@ -26,8 +32,11 @@ class RtlsNodeModel {
     this.ipAddress,
     this.macAddress,
     this.firmwareVersion,
+    this.connectionType = ConnectionType.wifi, // Default to WiFi
+    this.lastEthernetSync,
+    this.lastWifiSync,
   });
-  
+
   /// Create RtlsNodeModel from JSON
   factory RtlsNodeModel.fromJson(Map<String, dynamic> json) {
     return RtlsNodeModel(
@@ -35,7 +44,8 @@ class RtlsNodeModel {
       name: json['name'] as String,
       coordX: (json['coord_x'] as num).toDouble(),
       coordY: (json['coord_y'] as num).toDouble(),
-      coordZ: json['coord_z'] != null ? (json['coord_z'] as num).toDouble() : null,
+      coordZ:
+          json['coord_z'] != null ? (json['coord_z'] as num).toDouble() : null,
       signalQuality: (json['signal_quality'] as num?)?.toDouble() ?? 0.0,
       isActive: json['is_active'] as bool? ?? true,
       createdAt: DateTime.parse(json['created_at'] as String),
@@ -45,9 +55,21 @@ class RtlsNodeModel {
       ipAddress: json['ip_address'] as String?,
       macAddress: json['mac_address'] as String?,
       firmwareVersion: json['firmware_version'] as String?,
+      connectionType: json['connection_type'] != null
+          ? ConnectionType.values.firstWhere(
+              (e) => e.name == json['connection_type'],
+              orElse: () => ConnectionType.wifi,
+            )
+          : ConnectionType.wifi,
+      lastEthernetSync: json['last_ethernet_sync'] != null
+          ? DateTime.parse(json['last_ethernet_sync'] as String)
+          : null,
+      lastWifiSync: json['last_wifi_sync'] != null
+          ? DateTime.parse(json['last_wifi_sync'] as String)
+          : null,
     );
   }
-  
+
   /// Convert RtlsNodeModel to JSON
   Map<String, dynamic> toJson() {
     return {
@@ -63,9 +85,12 @@ class RtlsNodeModel {
       'ip_address': ipAddress,
       'mac_address': macAddress,
       'firmware_version': firmwareVersion,
+      'connection_type': connectionType.name,
+      'last_ethernet_sync': lastEthernetSync?.toIso8601String(),
+      'last_wifi_sync': lastWifiSync?.toIso8601String(),
     };
   }
-  
+
   /// Get signal strength text
   String get signalStrengthText {
     if (signalQuality > -50) return 'Excellent';
@@ -73,17 +98,53 @@ class RtlsNodeModel {
     if (signalQuality > -70) return 'Fair';
     return 'Poor';
   }
-  
+
   /// Get status text
   String get statusText {
     if (!isActive) return 'Inactive';
     if (lastSyncAt == null) return 'Never Synced';
-    
+
     final diff = DateTime.now().difference(lastSyncAt!);
     if (diff.inMinutes < 5) return 'Online';
     return 'Offline';
   }
-  
+
+  /// Get connection status text
+  String get connectionStatusText {
+    if (!isActive) return 'Inactive';
+    if (lastSyncAt == null) return 'Never Synced';
+
+    final diff = DateTime.now().difference(lastSyncAt!);
+    if (diff.inMinutes < 5) {
+      return '${connectionType.icon} Online';
+    }
+    return 'Offline';
+  }
+
+  /// Check if Ethernet connection is active
+  bool get isEthernetActive {
+    if (lastEthernetSync == null) return false;
+    final diff = DateTime.now().difference(lastEthernetSync!);
+    return diff.inMilliseconds < AppConstants.ethernetTimeoutMs;
+  }
+
+  /// Check if WiFi connection is active
+  bool get isWifiActive {
+    if (lastWifiSync == null) return false;
+    final diff = DateTime.now().difference(lastWifiSync!);
+    return diff.inMilliseconds < AppConstants.wifiTimeoutMs;
+  }
+
+  /// Get current active connection type
+  ConnectionType get activeConnectionType {
+    // Prefer Ethernet if active
+    if (isEthernetActive) return ConnectionType.ethernet;
+    // Fall back to WiFi if active
+    if (isWifiActive) return ConnectionType.wifi;
+    // Default to current connection type
+    return connectionType;
+  }
+
   /// Copy with method
   RtlsNodeModel copyWith({
     String? id,
@@ -98,6 +159,9 @@ class RtlsNodeModel {
     String? ipAddress,
     String? macAddress,
     String? firmwareVersion,
+    ConnectionType? connectionType,
+    DateTime? lastEthernetSync,
+    DateTime? lastWifiSync,
   }) {
     return RtlsNodeModel(
       id: id ?? this.id,
@@ -112,6 +176,9 @@ class RtlsNodeModel {
       ipAddress: ipAddress ?? this.ipAddress,
       macAddress: macAddress ?? this.macAddress,
       firmwareVersion: firmwareVersion ?? this.firmwareVersion,
+      connectionType: connectionType ?? this.connectionType,
+      lastEthernetSync: lastEthernetSync ?? this.lastEthernetSync,
+      lastWifiSync: lastWifiSync ?? this.lastWifiSync,
     );
   }
 }

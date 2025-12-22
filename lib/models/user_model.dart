@@ -1,84 +1,86 @@
-/// User Model
+/// User Profile Model (based on profiles table)
 class UserModel {
   final String id;
-  final String name;
-  final String email;
-  final String role; // Admin, User, Viewer
-  final String? avatarUrl;
+  final String? employeeId;
+  final String? username;
+  final String role; // admin, employee
+  final String fullName;
   final DateTime createdAt;
-  final DateTime? lastLoginAt;
-  final bool isActive;
-  
+  final DateTime updatedAt;
+  final String? nfcId;
+
   UserModel({
     required this.id,
-    required this.name,
-    required this.email,
+    this.employeeId,
+    this.username,
     required this.role,
-    this.avatarUrl,
+    required this.fullName,
     required this.createdAt,
-    this.lastLoginAt,
-    this.isActive = true,
+    required this.updatedAt,
+    this.nfcId,
   });
-  
+
   /// Create UserModel from JSON
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
       id: json['id'] as String,
-      name: json['name'] as String,
-      email: json['email'] as String,
+      employeeId: json['employee_id'] as String?,
+      username: json['username'] as String?,
       role: json['role'] as String,
-      avatarUrl: json['avatar_url'] as String?,
+      fullName: json['full_name'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),
-      lastLoginAt: json['last_login_at'] != null
-          ? DateTime.parse(json['last_login_at'] as String)
-          : null,
-      isActive: json['is_active'] as bool? ?? true,
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'] as String)
+          : DateTime.now(),
+      nfcId: json['nfc_id'] as String?,
     );
   }
-  
+
   /// Convert UserModel to JSON
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'name': name,
-      'email': email,
+      'employee_id': employeeId,
+      'username': username,
       'role': role,
-      'avatar_url': avatarUrl,
+      'full_name': fullName,
       'created_at': createdAt.toIso8601String(),
-      'last_login_at': lastLoginAt?.toIso8601String(),
-      'is_active': isActive,
+      'updated_at': updatedAt.toIso8601String(),
+      'nfc_id': nfcId,
     };
   }
-  
+
   /// Check if user is admin
-  bool get isAdmin => role == 'Admin';
-  
-  /// Check if user is user
-  bool get isUser => role == 'User';
-  
-  /// Check if user is viewer
-  bool get isViewer => role == 'Viewer';
-  
+  bool get isAdmin => role == 'admin';
+
+  /// Check if user is employee
+  bool get isEmployee => role == 'employee';
+
+  /// Get display name (backward compatibility)
+  String get name => fullName;
+  String get email => username ?? '';
+  bool get isActive => true;
+
   /// Copy with method
   UserModel copyWith({
     String? id,
-    String? name,
-    String? email,
+    String? employeeId,
+    String? username,
     String? role,
-    String? avatarUrl,
+    String? fullName,
     DateTime? createdAt,
-    DateTime? lastLoginAt,
-    bool? isActive,
+    DateTime? updatedAt,
+    String? nfcId,
   }) {
     return UserModel(
       id: id ?? this.id,
-      name: name ?? this.name,
-      email: email ?? this.email,
+      employeeId: employeeId ?? this.employeeId,
+      username: username ?? this.username,
       role: role ?? this.role,
-      avatarUrl: avatarUrl ?? this.avatarUrl,
+      fullName: fullName ?? this.fullName,
       createdAt: createdAt ?? this.createdAt,
-      lastLoginAt: lastLoginAt ?? this.lastLoginAt,
-      isActive: isActive ?? this.isActive,
+      updatedAt: updatedAt ?? this.updatedAt,
+      nfcId: nfcId ?? this.nfcId,
     );
   }
 }
